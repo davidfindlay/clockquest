@@ -1,0 +1,103 @@
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ReadTheClock } from '../components/Game/ReadTheClock'
+import { SetTheClock } from '../components/Game/SetTheClock'
+import { BeatTheClock } from '../components/Game/BeatTheClock'
+import { Button } from '../components/UI/Button'
+import { useGame } from '../stores/gameStore'
+import { submitSession } from '../api/sessions'
+import type { Difficulty, GameMode, SessionCreate } from '../types'
+
+const DIFFICULTIES: { id: Difficulty; label: string }[] = [
+  { id: 'hour', label: 'Hours Only' },
+  { id: 'half', label: 'Half Hours' },
+  { id: 'quarter', label: 'Quarters' },
+  { id: 'five_min', label: '5 Minutes' },
+  { id: 'one_min', label: 'Any Minute' },
+]
+
+const MODES: { id: GameMode; label: string; description: string }[] = [
+  { id: 'read', label: 'Read the Clock', description: 'What time does the clock show?' },
+  { id: 'set', label: 'Set the Clock', description: 'Drag hands to match the time' },
+  { id: 'speedrun', label: 'Beat the Clock', description: '60 seconds — answer as many as you can!' },
+]
+
+export function GamePage() {
+  const { mode: urlMode } = useParams<{ mode: string }>()
+  const navigate = useNavigate()
+  const { player, setPlayer } = useGame()
+  const [mode, setMode] = useState<GameMode | null>((urlMode as GameMode) || null)
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(null)
+
+  if (!player) {
+    navigate('/')
+    return null
+  }
+
+  const handleComplete = async (result: Omit<SessionCreate, 'player_id'>) => {
+    const sessionResult = await submitSession({ ...result, player_id: player.id })
+    setPlayer(sessionResult.player)
+    navigate('/results', { state: { result: sessionResult } })
+  }
+
+  // Mode selection
+  if (!mode) {
+    return (
+      <div className="min-h-full p-6 pt-12 flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-6">Choose a Mode</h1>
+        <div className="flex flex-col gap-3 w-full max-w-md">
+          {MODES.map(m => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl p-5 text-left transition-all active:scale-98"
+            >
+              <div className="text-lg font-bold">{m.label}</div>
+              <div className="text-sm text-slate-400">{m.description}</div>
+            </button>
+          ))}
+        </div>
+        <Button variant="ghost" className="mt-6" onClick={() => navigate('/hub')}>Back to Hub</Button>
+      </div>
+    )
+  }
+
+  // Difficulty selection
+  if (!difficulty) {
+    return (
+      <div className="min-h-full p-6 pt-12 flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">
+          {MODES.find(m => m.id === mode)?.label}
+        </h1>
+        <p className="text-slate-400 mb-6">Pick your difficulty</p>
+        <div className="flex flex-col gap-3 w-full max-w-md">
+          {DIFFICULTIES.map(d => (
+            <button
+              key={d.id}
+              onClick={() => setDifficulty(d.id)}
+              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl p-4 text-lg font-bold text-left transition-all active:scale-98"
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <Button variant="ghost" className="mt-6" onClick={() => setMode(null)}>Change Mode</Button>
+      </div>
+    )
+  }
+
+  // Playing
+  return (
+    <div className="min-h-full p-6 pt-8 flex flex-col items-center">
+      {mode === 'read' && (
+        <ReadTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
+      )}
+      {mode === 'set' && (
+        <SetTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
+      )}
+      {mode === 'speedrun' && (
+        <BeatTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
+      )}
+    </div>
+  )
+}

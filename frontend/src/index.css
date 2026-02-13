@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --color-wood: #8B6914;
+  --color-stone: #808080;
+  --color-coal: #333333;
+  --color-iron: #C0C0C0;
+  --color-gold: #FFD700;
+  --color-redstone: #FF0000;
+  --color-lapis: #1E40AF;
+  --color-diamond: #00CED1;
+  --color-netherite: #4A0E4E;
+  --color-beacon: #FFEA00;
+  --color-clockmaster: #FF69B4;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
