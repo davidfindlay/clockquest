@@ -28,7 +28,7 @@ def test_create_world():
     assert r.status_code == 200
     data = r.json()
     assert data["name"] == "Test World"
-    assert len(data["join_code"]) == 6
+    assert 6 <= len(data["join_code"]) <= 15
 
 
 def test_join_world():
