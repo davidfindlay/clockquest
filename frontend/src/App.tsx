@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { GameContext, loadSession, saveSession, clearSession } from './stores/gameStore'
+import { GameContext, loadWorld, loadPlayer, saveWorld, savePlayer, clearSession } from './stores/gameStore'
 import { WelcomePage } from './pages/WelcomePage'
 import { PlayerSelectPage } from './pages/PlayerSelectPage'
 import { HubPage } from './pages/HubPage'
@@ -15,9 +15,8 @@ import './App.css'
 const queryClient = new QueryClient()
 
 function AppRoutes() {
-  const saved = loadSession()
-  const [world, setWorldRaw] = useState<World | null>(saved?.world ?? null)
-  const [player, setPlayerRaw] = useState<Player | null>(saved?.player ?? null)
+  const [world, setWorldRaw] = useState<World | null>(loadWorld)
+  const [player, setPlayerRaw] = useState<Player | null>(loadPlayer)
 
   const setWorld = useCallback((w: World | null) => {
     setWorldRaw(w)
@@ -25,34 +24,20 @@ function AppRoutes() {
       // Clearing world clears player too
       setPlayerRaw(null)
       clearSession()
+    } else {
+      saveWorld(w)
     }
   }, [])
 
   const setPlayer = useCallback((p: Player | null) => {
     setPlayerRaw(p)
-    if (p) {
-      // Use functional update to read latest world without a dependency
-      setWorldRaw(currentWorld => {
-        if (currentWorld) saveSession(currentWorld, p)
-        return currentWorld
-      })
-    } else {
-      clearSession()
-    }
+    savePlayer(p)
   }, [])
-
-  // Also persist when world changes with an existing player
-  useEffect(() => {
-    if (world && player) {
-      saveSession(world, player)
-    }
-  }, [world, player])
 
   return (
     <GameContext.Provider value={{ world, player, setWorld, setPlayer }}>
       <Routes>
         <Route path="/" element={
-          // If we have a saved session, go straight to hub
           world && player ? <Navigate to="/hub" replace /> : <WelcomePage />
         } />
         <Route path="/players" element={<PlayerSelectPage />} />

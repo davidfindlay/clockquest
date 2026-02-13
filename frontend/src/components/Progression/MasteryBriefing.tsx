@@ -11,10 +11,9 @@ interface MasteryBriefingProps {
   onStartTrial: () => void
   onLeaderboard: () => void
   onSwitchPlayer: () => void
-  onSwitchWorld: () => void
 }
 
-export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeaderboard, onSwitchPlayer, onSwitchWorld }: MasteryBriefingProps) {
+export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeaderboard, onSwitchPlayer }: MasteryBriefingProps) {
   const { player, next_tier_name, next_tier_threshold, mastered_skills, quests } = briefing
   const trialReady = next_tier_threshold !== null && player.clock_power >= next_tier_threshold
 
@@ -70,18 +69,8 @@ export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeader
         </div>
       )}
 
-      {/* Quests */}
-      <div>
-        <h3 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Quests</h3>
-        <div className="flex flex-col gap-3">
-          {quests.map(quest => (
-            <QuestCard key={quest.id} quest={quest} />
-          ))}
-        </div>
-      </div>
-
       {/* Actions */}
-      <div className="flex flex-col gap-3 mt-2">
+      <div className="flex flex-col gap-3">
         {trialReady && (
           <Button onClick={onStartTrial} size="lg" className="w-full">
             Attempt {next_tier_name} Trial
@@ -93,15 +82,22 @@ export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeader
         <Button variant="secondary" onClick={onLeaderboard} className="w-full">
           Leaderboard
         </Button>
-        <div className="flex gap-3">
-          <Button variant="ghost" size="sm" onClick={onSwitchPlayer} className="flex-1">
-            Switch Player
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onSwitchWorld} className="flex-1">
-            Change World
-          </Button>
+      </div>
+
+      {/* Quests */}
+      <div>
+        <h3 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Quests</h3>
+        <div className="flex flex-col gap-3">
+          {quests.map(quest => (
+            <QuestCard key={quest.id} quest={quest} />
+          ))}
         </div>
       </div>
+
+      {/* Switch player */}
+      <Button variant="ghost" size="sm" onClick={onSwitchPlayer} className="w-full">
+        Switch Player
+      </Button>
     </div>
   )
 }
