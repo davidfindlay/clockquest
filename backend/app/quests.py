@@ -7,7 +7,7 @@ and what they need to do to advance.
 from sqlalchemy.orm import Session as DbSession
 
 from .models import Player, Quest, Session
-from .tier_trials import TRIAL_DEFINITIONS, TIER_NAMES
+from .tiers import get_trial_definitions, get_tier_name, get_tier
 
 # Difficulty progression per tier
 TIER_DIFFICULTY = {
@@ -40,7 +40,7 @@ def generate_quests(db: DbSession, player: Player) -> list[Quest]:
     if next_tier > 10:
         return active_quests
 
-    trial_config = TRIAL_DEFINITIONS.get(next_tier)
+    trial_config = get_trial_definitions().get(next_tier)
     if trial_config is None:
         return active_quests
 
@@ -78,12 +78,13 @@ def generate_quests(db: DbSession, player: Player) -> list[Quest]:
     if "trial_ready" not in existing_types and "streak" not in existing_types:
         if len(active_quests) + len(new_quests) < 3:
             # Check if player might be ready for trial
-            power_needed = next_tier * 100
+            next_tier_def = get_tier(next_tier)
+            power_needed = next_tier_def.min_power
             if player.clock_power >= power_needed * 0.8:
                 q = Quest(
                     player_id=player.id,
                     quest_type="trial_ready",
-                    description=f"Reach {power_needed} Clock Power to attempt the {TIER_NAMES.get(next_tier, '')} Trial",
+                    description=f"Reach {power_needed} Clock Power to attempt the {get_tier_name(next_tier)} Trial",
                     target=power_needed,
                     progress=player.clock_power,
                 )

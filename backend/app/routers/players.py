@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Player, World
 from ..schemas import PlayerCreate, PlayerResponse, PlayerBriefing, QuestResponse
-from ..tier_trials import TIER_NAMES, TIER_COLORS, get_mastered_skills
+from ..tiers import get_tier_name, get_tier_color, get_mastered_skills, get_tier
 from ..quests import generate_quests
 
 router = APIRouter(prefix="/api/players", tags=["players"])
@@ -44,11 +44,12 @@ def get_briefing(player_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Player not found")
 
     current_tier = player.current_tier
+    current_def = get_tier(current_tier)
     next_tier = current_tier + 1 if current_tier < 10 else None
 
     # Tier progress within current band
-    tier_floor = current_tier * 100
-    tier_ceiling = (current_tier + 1) * 100 if current_tier < 10 else 1000
+    tier_floor = current_def.min_power
+    tier_ceiling = current_def.max_power + 1 if current_tier < 10 else 1000
     progress_in_tier = player.clock_power - tier_floor
     tier_range = tier_ceiling - tier_floor
     tier_progress_pct = (progress_in_tier / tier_range * 100) if tier_range > 0 else 100.0
@@ -72,10 +73,10 @@ def get_briefing(player_id: int, db: Session = Depends(get_db)):
 
     return PlayerBriefing(
         player=PlayerResponse.model_validate(player),
-        tier_name=TIER_NAMES.get(current_tier, "Wood"),
-        tier_color=TIER_COLORS.get(current_tier, "#8B6914"),
-        next_tier_name=TIER_NAMES.get(next_tier) if next_tier else None,
-        next_tier_threshold=next_tier * 100 if next_tier else None,
+        tier_name=get_tier_name(current_tier),
+        tier_color=get_tier_color(current_tier),
+        next_tier_name=get_tier_name(next_tier) if next_tier is not None else None,
+        next_tier_threshold=get_tier(next_tier).min_power if next_tier is not None else None,
         tier_progress_pct=round(tier_progress_pct, 1),
         mastered_skills=get_mastered_skills(current_tier),
         quests=quest_responses,

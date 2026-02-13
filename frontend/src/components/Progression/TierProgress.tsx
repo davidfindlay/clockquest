@@ -8,8 +8,8 @@ interface TierProgressProps {
 export function TierProgress({ clockPower, currentTier }: TierProgressProps) {
   const tierInfo = getTierByIndex(currentTier)
   const nextTier = currentTier < 10 ? getTierByIndex(currentTier + 1) : null
-  const tierFloor = currentTier * 100
-  const tierCeiling = nextTier ? (currentTier + 1) * 100 : 1000
+  const tierFloor = tierInfo.minPower
+  const tierCeiling = nextTier ? nextTier.minPower : 1000
   const progress = ((clockPower - tierFloor) / (tierCeiling - tierFloor)) * 100
 
   return (

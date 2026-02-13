@@ -10,7 +10,7 @@ from ..schemas import (
     TierTrialResponse,
     PlayerResponse,
 )
-from ..tier_trials import get_trial_config, validate_trial, TIER_NAMES
+from ..tiers import get_trial_config, validate_trial, get_tier_name, get_tier
 
 router = APIRouter(prefix="/api/trials", tags=["trials"])
 
@@ -38,7 +38,7 @@ def submit_trial(data: TierTrialSubmit, db: DbSession = Depends(get_db)):
         )
 
     # Check if player has enough clock power
-    required_power = data.tier * 100
+    required_power = get_tier(data.tier).min_power
     if player.clock_power < required_power:
         raise HTTPException(
             status_code=400,
@@ -63,7 +63,7 @@ def submit_trial(data: TierTrialSubmit, db: DbSession = Depends(get_db)):
     # If passed, unlock tier
     if passed:
         player.current_tier = data.tier
-        message = f"You unlocked {TIER_NAMES.get(data.tier, 'Unknown')}!"
+        message = f"You unlocked {get_tier_name(data.tier)}!"
     else:
         config = get_trial_config(data.tier)
         message = f"Not quite! You needed {config['min_correct']}/{config['questions']} correct. Keep practising!"
@@ -76,6 +76,6 @@ def submit_trial(data: TierTrialSubmit, db: DbSession = Depends(get_db)):
         trial=TierTrialResponse.model_validate(trial),
         passed=passed,
         player=PlayerResponse.model_validate(player),
-        tier_name=TIER_NAMES.get(data.tier, "Unknown"),
+        tier_name=get_tier_name(data.tier),
         message=message,
     )

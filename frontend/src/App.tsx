@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { GameContext, loadWorld, loadPlayer, saveWorld, savePlayer, clearSession } from './stores/gameStore'
@@ -9,6 +9,8 @@ import { GamePage } from './pages/GamePage'
 import { ResultsPage } from './pages/ResultsPage'
 import { TrialPage } from './pages/TrialPage'
 import { LeaderboardPage } from './pages/LeaderboardPage'
+import { JoinPage } from './pages/JoinPage'
+import { loadTiers } from './utils/tier-config'
 import type { World, Player } from './types'
 import './App.css'
 
@@ -17,6 +19,9 @@ const queryClient = new QueryClient()
 function AppRoutes() {
   const [world, setWorldRaw] = useState<World | null>(loadWorld)
   const [player, setPlayerRaw] = useState<Player | null>(loadPlayer)
+
+  // Load tier config from backend on app startup
+  useEffect(() => { loadTiers() }, [])
 
   const setWorld = useCallback((w: World | null) => {
     setWorldRaw(w)
@@ -40,6 +45,7 @@ function AppRoutes() {
         <Route path="/" element={
           world && player ? <Navigate to="/hub" replace /> : <WelcomePage />
         } />
+        <Route path="/join/:code" element={<JoinPage />} />
         <Route path="/players" element={<PlayerSelectPage />} />
         <Route path="/hub" element={<HubPage />} />
         <Route path="/play" element={<GamePage />} />

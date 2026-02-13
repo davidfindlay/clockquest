@@ -5,6 +5,7 @@ difficulty, hints, and diminishing returns for repeated content.
 """
 
 from .models import Session, Player
+from .tiers import get_tier_ceiling
 
 DIFFICULTY_MULTIPLIERS = {
     "hour": 0.5,
@@ -67,9 +68,8 @@ def calculate_session_points(
     # Ensure non-negative
     raw = max(0.0, raw)
 
-    # Tier ceiling: cannot exceed (current_tier + 1) * 100
-    max_power = (player_current_tier + 1) * 100
-    max_power = min(max_power, 1000)
+    # Tier ceiling: cannot exceed the tier's max power threshold
+    max_power = get_tier_ceiling(player_current_tier)
     new_power = min(player_clock_power + raw, max_power)
     points = max(0.0, new_power - player_clock_power)
 

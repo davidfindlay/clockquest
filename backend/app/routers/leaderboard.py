@@ -7,7 +7,7 @@ from sqlalchemy import func
 from ..database import get_db
 from ..models import Player, Session as SessionModel
 from ..schemas import LeaderboardEntry, LeaderboardResponse
-from ..tier_trials import TIER_NAMES
+from ..tiers import get_tier_name
 
 router = APIRouter(prefix="/api/leaderboard", tags=["leaderboard"])
 
@@ -46,7 +46,7 @@ def get_leaderboard(
                 nickname=player.nickname,
                 clock_power=player.clock_power,
                 current_tier=player.current_tier,
-                tier_name=TIER_NAMES.get(player.current_tier, "Wood"),
+                tier_name=get_tier_name(player.current_tier),
                 weekly_gain=round(float(weekly_points), 1),
             )
         )

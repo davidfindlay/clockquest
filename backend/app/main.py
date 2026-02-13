@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import engine, Base
 from .routers import worlds, players, sessions, trials, leaderboard
+from .tiers import tier_list_for_api
 
 
 @asynccontextmanager
@@ -35,3 +36,9 @@ app.include_router(leaderboard.router)
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "app": "ClockQuest"}
+
+
+@app.get("/api/tiers")
+def get_tiers():
+    """Return all tier definitions. Used by frontend to avoid hardcoded tier data."""
+    return tier_list_for_api()
