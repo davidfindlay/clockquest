@@ -1,27 +1,23 @@
 import hashlib
-import secrets
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import World, Player
 from ..schemas import WorldCreate, WorldResponse
+from ..join_codes import generate_join_code, normalize_join_code
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
 
-def _generate_join_code() -> str:
-    """Generate a short, memorable join code."""
-    return secrets.token_hex(3).upper()  # e.g. "A3F2B1"
-
-
 @router.post("", response_model=WorldResponse)
 def create_world(data: WorldCreate, db: Session = Depends(get_db)):
-    join_code = _generate_join_code()
+    join_code = generate_join_code()
     # Ensure uniqueness
     while db.query(World).filter(World.join_code == join_code).first():
-        join_code = _generate_join_code()
+        join_code = generate_join_code()
 
     pin_hash = None
     if data.pin:
@@ -43,7 +39,11 @@ def create_world(data: WorldCreate, db: Session = Depends(get_db)):
 
 @router.get("/join/{join_code}", response_model=WorldResponse)
 def join_world(join_code: str, db: Session = Depends(get_db)):
-    world = db.query(World).filter(World.join_code == join_code.upper()).first()
+    normalized = normalize_join_code(join_code)
+    if not normalized:
+        raise HTTPException(status_code=404, detail="World not found")
+
+    world = db.query(World).filter(func.lower(World.join_code) == normalized.lower()).first()
     if not world:
         raise HTTPException(status_code=404, detail="World not found")
 

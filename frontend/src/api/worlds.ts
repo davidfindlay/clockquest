@@ -6,7 +6,7 @@ export function createWorld(name: string, pin?: string): Promise<World> {
 }
 
 export function joinWorld(joinCode: string): Promise<World> {
-  return apiFetch(`/worlds/join/${joinCode.toUpperCase()}`)
+  return apiFetch(`/worlds/join/${joinCode.trim()}`)
 }
 
 export function getWorld(worldId: number): Promise<World> {
