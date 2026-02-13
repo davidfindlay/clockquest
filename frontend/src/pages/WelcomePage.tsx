@@ -96,7 +96,7 @@ export function WelcomePage() {
             onChange={e => setJoinCode(e.target.value.toUpperCase())}
             onKeyDown={e => e.key === 'Enter' && handleJoin()}
             className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-lg mb-4 outline-none focus:border-amber-500 uppercase tracking-widest text-center font-mono"
-            maxLength={6}
+            maxLength={15}
             autoFocus
           />
           {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
