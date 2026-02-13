@@ -14,9 +14,17 @@ export function TierProgress({ clockPower, currentTier }: TierProgressProps) {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between text-sm text-slate-400 mb-1">
-        <span>{tierInfo.name} ({tierFloor})</span>
-        {nextTier && <span>{nextTier.name} ({tierCeiling})</span>}
+      <div className="flex justify-between text-base text-slate-400 mb-1">
+        <span className="inline-flex items-center gap-1.5">
+          <img src={tierInfo.icon} alt={tierInfo.name} width={32} height={32} />
+          {tierInfo.name} ({tierFloor})
+        </span>
+        {nextTier && (
+          <span className="inline-flex items-center gap-1.5">
+            {nextTier.name} ({tierCeiling})
+            <img src={nextTier.icon} alt={nextTier.name} width={32} height={32} />
+          </span>
+        )}
       </div>
       <div className="h-4 bg-slate-700 rounded-full overflow-hidden">
         <div

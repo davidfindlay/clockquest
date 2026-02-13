@@ -9,7 +9,7 @@ import type { Player } from '../types'
 
 export function PlayerSelectPage() {
   const navigate = useNavigate()
-  const { world, setPlayer } = useGame()
+  const { world, setWorld, setPlayer } = useGame()
   const [players, setPlayers] = useState<Player[]>([])
   const [creating, setCreating] = useState(false)
   const [nickname, setNickname] = useState('')
@@ -91,7 +91,7 @@ export function PlayerSelectPage() {
         </Card>
       )}
 
-      <Button variant="ghost" className="mt-6" onClick={() => navigate('/')}>
+      <Button variant="ghost" className="mt-6" onClick={() => { setWorld(null); navigate('/') }}>
         Change World
       </Button>
     </div>

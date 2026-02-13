@@ -7,7 +7,7 @@ import type { PlayerBriefing } from '../types'
 
 export function HubPage() {
   const navigate = useNavigate()
-  const { player, setPlayer } = useGame()
+  const { player, setPlayer, setWorld } = useGame()
   const [briefing, setBriefing] = useState<PlayerBriefing | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -44,6 +44,8 @@ export function HubPage() {
         onStartQuest={() => navigate('/play/read')}
         onStartTrial={() => navigate(`/trial/${player.current_tier + 1}`)}
         onLeaderboard={() => navigate('/leaderboard')}
+        onSwitchPlayer={() => { setPlayer(null); navigate('/players') }}
+        onSwitchWorld={() => { setWorld(null); navigate('/') }}
       />
     </div>
   )
