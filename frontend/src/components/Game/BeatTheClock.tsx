@@ -2,22 +2,40 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { AnalogClock } from '../Clock/AnalogClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
 import { generateTime, generateChoices } from './question-gen'
-import { formatTime } from '../Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
 interface BeatTheClockProps {
   playerId: number
   difficulty: Difficulty
+  timeFormatMix?: Record<string, number>
   durationSeconds?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
 
-export function BeatTheClock({ difficulty, durationSeconds = 60, onComplete }: BeatTheClockProps) {
+interface SpeedQuestion {
+  hours: number
+  minutes: number
+  format: TimeFormat
+  ampm: 'AM' | 'PM'
+  correctAnswer: string
+  choices: string[]
+}
+
+function newSpeedQuestion(difficulty: Difficulty, mix: Record<string, number>): SpeedQuestion {
+  const t = generateTime(difficulty)
+  const { format, ampm } = pickTimeFormat(mix)
+  const correctAnswer = formatTimeAs(t.hours, t.minutes, format, ampm)
+  const choices = generateChoices(t, difficulty, 4, format, ampm)
+  return { ...t, format, ampm, correctAnswer, choices }
+}
+
+export function BeatTheClock({ difficulty, timeFormatMix, durationSeconds = 60, onComplete }: BeatTheClockProps) {
+  const mix = timeFormatMix ?? { digital: 1 }
+
   const [timeLeft, setTimeLeft] = useState(durationSeconds)
-  const [question, setQuestion] = useState(() => {
-    const t = generateTime(difficulty)
-    return { ...t, choices: generateChoices(t, difficulty) }
-  })
+  const [question, setQuestion] = useState<SpeedQuestion>(() => newSpeedQuestion(difficulty, mix))
   const [selected, setSelected] = useState<string | null>(null)
   const [totalQuestions, setTotalQuestions] = useState(0)
   const [correct, setCorrect] = useState(0)
@@ -59,8 +77,6 @@ export function BeatTheClock({ difficulty, durationSeconds = 60, onComplete }: B
     }
   }, [gameOver, difficulty, totalQuestions, correct, responseTimes, onComplete])
 
-  const correctAnswer = formatTime(question.hours, question.minutes)
-
   const handleSelect = useCallback((option: string) => {
     if (selected || gameOver) return
     setSelected(option)
@@ -68,18 +84,17 @@ export function BeatTheClock({ difficulty, durationSeconds = 60, onComplete }: B
     setResponseTimes(prev => [...prev, elapsed])
     setTotalQuestions(q => q + 1)
 
-    if (option === correctAnswer) {
+    if (option === question.correctAnswer) {
       setCorrect(c => c + 1)
     }
 
     // Auto advance after brief delay
     setTimeout(() => {
-      const t = generateTime(difficulty)
-      setQuestion({ ...t, choices: generateChoices(t, difficulty) })
+      setQuestion(newSpeedQuestion(difficulty, mix))
       setSelected(null)
       setQuestionStart(Date.now())
     }, 400)
-  }, [selected, gameOver, questionStart, correctAnswer, difficulty])
+  }, [selected, gameOver, questionStart, question.correctAnswer, difficulty, mix])
 
   const timerColor = timeLeft <= 10 ? 'text-red-400' : timeLeft <= 30 ? 'text-amber-400' : 'text-green-400'
 
@@ -111,7 +126,7 @@ export function BeatTheClock({ difficulty, durationSeconds = 60, onComplete }: B
         options={question.choices}
         onSelect={handleSelect}
         selected={selected}
-        correctAnswer={selected ? correctAnswer : null}
+        correctAnswer={selected ? question.correctAnswer : null}
         disabled={gameOver}
       />
     </div>

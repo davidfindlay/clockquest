@@ -1,5 +1,6 @@
 import type { Difficulty } from '../../types'
-import { formatTime } from '../Clock/clock-utils'
+import { formatTime, formatTimeAs } from '../Clock/clock-utils'
+import type { TimeFormat } from '../Clock/clock-utils'
 
 export interface ClockQuestion {
   hours: number
@@ -115,14 +116,24 @@ export function generateStartTime(difficulty: Difficulty, correct: ClockQuestion
 
 /**
  * Generate multiple choice options including the correct answer.
+ * When format/ampm are provided, all choices use that format for consistency.
  */
-export function generateChoices(correct: ClockQuestion, difficulty: Difficulty, count: number = 4): string[] {
-  const correctStr = formatTime(correct.hours, correct.minutes)
+export function generateChoices(
+  correct: ClockQuestion,
+  difficulty: Difficulty,
+  count: number = 4,
+  format?: TimeFormat,
+  ampm?: 'AM' | 'PM',
+): string[] {
+  const fmt = (h: number, m: number) =>
+    format ? formatTimeAs(h, m, format, ampm) : formatTime(h, m)
+
+  const correctStr = fmt(correct.hours, correct.minutes)
   const choices = new Set<string>([correctStr])
 
   while (choices.size < count) {
     const fake = generateDistractor(correct, difficulty)
-    const fakeStr = formatTime(fake.hours, fake.minutes)
+    const fakeStr = fmt(fake.hours, fake.minutes)
     if (fakeStr !== correctStr) {
       choices.add(fakeStr)
     }

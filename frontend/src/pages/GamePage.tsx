@@ -97,13 +97,14 @@ export function GamePage() {
   }
 
   // Playing (manual mode)
+  const tierInfo = getTierByIndex(player.current_tier)
   return (
     <div className="min-h-full p-6 pt-8 flex flex-col items-center">
       {mode === 'read' && (
-        <ReadTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
+        <ReadTheClock playerId={player.id} difficulty={difficulty} timeFormatMix={tierInfo.timeFormatMix} onComplete={handleComplete} />
       )}
       {mode === 'set' && (
-        <SetTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
+        <SetTheClock playerId={player.id} difficulty={difficulty} timeFormatMix={tierInfo.timeFormatMix} onComplete={handleComplete} />
       )}
     </div>
   )

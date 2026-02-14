@@ -2,26 +2,44 @@ import { useState, useCallback } from 'react'
 import { InteractiveClock } from '../Clock/InteractiveClock'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateHint } from './question-gen'
-import { formatTime, formatTimeWords } from '../Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
 interface SetTheClockProps {
   playerId: number
   difficulty: Difficulty
+  timeFormatMix?: Record<string, number>
   totalQuestions?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
 
-function initState(difficulty: Difficulty) {
-  const target = generateTime(difficulty)
-  const start = generateStartTime(difficulty, target)
-  return { target, startHours: start.hours, startMinutes: start.minutes }
+interface SetQuestionState {
+  hours: number
+  minutes: number
+  format: TimeFormat
+  ampm: 'AM' | 'PM'
+  display: string
 }
 
-export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: SetTheClockProps) {
+function initState(difficulty: Difficulty, mix: Record<string, number>) {
+  const target = generateTime(difficulty)
+  const start = generateStartTime(difficulty, target)
+  const { format, ampm } = pickTimeFormat(mix)
+  const display = formatTimeAs(target.hours, target.minutes, format, ampm)
+  return {
+    target: { hours: target.hours, minutes: target.minutes, format, ampm, display },
+    startHours: start.hours,
+    startMinutes: start.minutes,
+  }
+}
+
+export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, onComplete }: SetTheClockProps) {
+  const mix = timeFormatMix ?? { digital: 1 }
+
   const [questionIndex, setQuestionIndex] = useState(0)
-  const [init] = useState(() => initState(difficulty))
-  const [target, setTarget] = useState(init.target)
+  const [init] = useState(() => initState(difficulty, mix))
+  const [target, setTarget] = useState<SetQuestionState>(init.target)
   const [playerHours, setPlayerHours] = useState(init.startHours)
   const [playerMinutes, setPlayerMinutes] = useState(init.startMinutes)
   const [submitted, setSubmitted] = useState(false)
@@ -71,9 +89,11 @@ export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: Set
     setTarget(prev => {
       const next = generateTime(difficulty, prev)
       const start = generateStartTime(difficulty, next)
+      const { format, ampm } = pickTimeFormat(mix)
+      const display = formatTimeAs(next.hours, next.minutes, format, ampm)
       setPlayerHours(start.hours)
       setPlayerMinutes(start.minutes)
-      return next
+      return { hours: next.hours, minutes: next.minutes, format, ampm, display }
     })
     setSubmitted(false)
     setShowHint(false)
@@ -100,10 +120,9 @@ export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: Set
       {/* Target time */}
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-1">Set the clock to:</h2>
-        <div className="text-4xl font-mono text-amber-400 font-bold">
-          {formatTime(target.hours, target.minutes)}
+        <div className="text-4xl text-amber-400 font-bold">
+          {target.display}
         </div>
-        <div className="text-slate-400 text-lg">{formatTimeWords(target.hours, target.minutes)}</div>
       </div>
 
       {/* Hint */}
@@ -123,7 +142,7 @@ export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: Set
       {/* Feedback */}
       {submitted && (
         <div className={`text-xl font-bold ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
-          {isCorrect ? 'Correct!' : `Not quite! The answer was ${formatTime(target.hours, target.minutes)}`}
+          {isCorrect ? 'Correct!' : `Not quite! The answer was ${target.display}`}
         </div>
       )}
 

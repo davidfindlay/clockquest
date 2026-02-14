@@ -4,7 +4,8 @@ import { InteractiveClock } from '../Clock/InteractiveClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateChoices, generateHint } from './question-gen'
-import { formatTime, formatTimeWords } from '../Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 import type { TierInfo } from '../../utils/tier-config'
 
@@ -21,6 +22,9 @@ interface QuestQuestion {
   difficulty: Difficulty
   hours: number
   minutes: number
+  format: TimeFormat
+  ampm: 'AM' | 'PM'
+  display: string   // formatted correct answer
   choices: string[] // only used for 'read' mode
   startHours: number // starting clock position for 'set' mode
   startMinutes: number
@@ -67,7 +71,7 @@ function shuffle<T>(arr: T[]): T[] {
  * Build the full question plan for a quest run.
  * Ensures no two consecutive questions have the exact same time.
  */
-function buildQuestionPlan(mix: Record<string, number>, total: number): QuestQuestion[] {
+function buildQuestionPlan(mix: Record<string, number>, total: number, timeFormatMix: Record<string, number>): QuestQuestion[] {
   const counts = allocateCounts(mix, total)
 
   // Create questions with allocated difficulties
@@ -77,12 +81,17 @@ function buildQuestionPlan(mix: Record<string, number>, total: number): QuestQue
       const mode: QuestionMode = Math.random() < 0.5 ? 'read' : 'set'
       const time = generateTime(difficulty)
       const start = generateStartTime(difficulty, time)
+      const { format, ampm } = pickTimeFormat(timeFormatMix)
+      const display = formatTimeAs(time.hours, time.minutes, format, ampm)
       questions.push({
         mode,
         difficulty,
         hours: time.hours,
         minutes: time.minutes,
-        choices: mode === 'read' ? generateChoices(time, difficulty) : [],
+        format,
+        ampm,
+        display,
+        choices: mode === 'read' ? generateChoices(time, difficulty, 4, format, ampm) : [],
         startHours: start.hours,
         startMinutes: start.minutes,
       })
@@ -94,10 +103,11 @@ function buildQuestionPlan(mix: Record<string, number>, total: number): QuestQue
     const hasRead = questions.some(q => q.mode === 'read')
     const hasSet = questions.some(q => q.mode === 'set')
     if (!hasRead) {
-      questions[0].mode = 'read'
-      questions[0].choices = generateChoices(
-        { hours: questions[0].hours, minutes: questions[0].minutes },
-        questions[0].difficulty,
+      const q = questions[0]
+      q.mode = 'read'
+      q.choices = generateChoices(
+        { hours: q.hours, minutes: q.minutes },
+        q.difficulty, 4, q.format, q.ampm,
       )
     }
     if (!hasSet) {
@@ -112,13 +122,15 @@ function buildQuestionPlan(mix: Record<string, number>, total: number): QuestQue
   for (let i = 1; i < questions.length; i++) {
     if (questions[i].hours === questions[i - 1].hours && questions[i].minutes === questions[i - 1].minutes) {
       const time = generateTime(questions[i].difficulty, questions[i - 1])
-      questions[i].hours = time.hours
-      questions[i].minutes = time.minutes
-      const start = generateStartTime(questions[i].difficulty, time)
-      questions[i].startHours = start.hours
-      questions[i].startMinutes = start.minutes
-      if (questions[i].mode === 'read') {
-        questions[i].choices = generateChoices(time, questions[i].difficulty)
+      const q = questions[i]
+      q.hours = time.hours
+      q.minutes = time.minutes
+      q.display = formatTimeAs(time.hours, time.minutes, q.format, q.ampm)
+      const start = generateStartTime(q.difficulty, time)
+      q.startHours = start.hours
+      q.startMinutes = start.minutes
+      if (q.mode === 'read') {
+        q.choices = generateChoices(time, q.difficulty, 4, q.format, q.ampm)
       }
     }
   }
@@ -142,7 +154,7 @@ function getPrimaryDifficulty(mix: Record<string, number>): Difficulty {
 }
 
 export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRunProps) {
-  const [questions] = useState<QuestQuestion[]>(() => buildQuestionPlan(tierInfo.questRunMix, totalQuestions))
+  const [questions] = useState<QuestQuestion[]>(() => buildQuestionPlan(tierInfo.questRunMix, totalQuestions, tierInfo.timeFormatMix))
   const [questionIndex, setQuestionIndex] = useState(0)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
@@ -161,7 +173,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
   const [hintText, setHintText] = useState('')
 
   const q = questions[questionIndex]
-  const correctAnswer = formatTime(q.hours, q.minutes)
+  const correctAnswer = q.display
   const isSetCorrect = playerHours === q.hours && Math.abs(playerMinutes - q.minutes) <= 2
 
   const answered = q.mode === 'read' ? selectedChoice !== null : submitted
@@ -276,10 +288,9 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
         <>
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-1">Set the clock to:</h2>
-            <div className="text-4xl font-mono text-amber-400 font-bold">
-              {formatTime(q.hours, q.minutes)}
+            <div className="text-4xl text-amber-400 font-bold">
+              {q.display}
             </div>
-            <div className="text-slate-400 text-lg">{formatTimeWords(q.hours, q.minutes)}</div>
           </div>
 
           {showHint && (

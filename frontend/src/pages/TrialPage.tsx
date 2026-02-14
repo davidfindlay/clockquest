@@ -8,7 +8,9 @@ import { TierBadge } from '../components/Progression/TierBadge'
 import { useGame } from '../stores/gameStore'
 import { getTrialConfig, submitTrial } from '../api/trials'
 import { generateTime, generateChoices } from '../components/Game/question-gen'
-import { formatTime } from '../components/Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat } from '../components/Clock/clock-utils'
+import type { TimeFormat } from '../components/Clock/clock-utils'
+import { getTierByIndex } from '../utils/tier-config'
 import type { TierTrialConfig, TierTrialResult, Difficulty } from '../types'
 
 export function TrialPage() {
@@ -20,7 +22,7 @@ export function TrialPage() {
   const [config, setConfig] = useState<TierTrialConfig | null>(null)
   const [phase, setPhase] = useState<'intro' | 'playing' | 'result'>('intro')
   const [questionIndex, setQuestionIndex] = useState(0)
-  const [question, setQuestion] = useState<{ hours: number; minutes: number; choices: string[] } | null>(null)
+  const [question, setQuestion] = useState<{ hours: number; minutes: number; format: TimeFormat; ampm: 'AM' | 'PM'; correctAnswer: string; choices: string[] } | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
@@ -32,20 +34,24 @@ export function TrialPage() {
     getTrialConfig(tier).then(setConfig).catch(() => navigate('/hub'))
   }, [tier, player, navigate])
 
+  const tierInfo = getTierByIndex(tier)
+  const timeFormatMix = tierInfo.timeFormatMix
+
   const startTrial = useCallback(() => {
     if (!config) return
     setPhase('playing')
     setStartTime(Date.now())
     const diff = (config.difficulty === 'mixed' ? 'one_min' : config.difficulty) as Difficulty
     const t = generateTime(diff)
-    setQuestion({ ...t, choices: generateChoices(t, diff) })
-  }, [config])
+    const { format, ampm } = pickTimeFormat(timeFormatMix)
+    const correctAnswer = formatTimeAs(t.hours, t.minutes, format, ampm)
+    setQuestion({ ...t, format, ampm, correctAnswer, choices: generateChoices(t, diff, 4, format, ampm) })
+  }, [config, timeFormatMix])
 
   const handleSelect = useCallback((option: string) => {
     if (selected || !question) return
     setSelected(option)
-    const correctAnswer = formatTime(question.hours, question.minutes)
-    if (option === correctAnswer) {
+    if (option === question.correctAnswer) {
       setCorrect(c => c + 1)
     }
   }, [selected, question])
@@ -74,9 +80,11 @@ export function TrialPage() {
     setQuestionIndex(nextIdx)
     const diff = (config.difficulty === 'mixed' ? 'one_min' : config.difficulty) as Difficulty
     const t = generateTime(diff)
-    setQuestion({ ...t, choices: generateChoices(t, diff) })
+    const { format, ampm } = pickTimeFormat(timeFormatMix)
+    const correctAnswer = formatTimeAs(t.hours, t.minutes, format, ampm)
+    setQuestion({ ...t, format, ampm, correctAnswer, choices: generateChoices(t, diff, 4, format, ampm) })
     setSelected(null)
-  }, [config, player, questionIndex, startTime, correct, hintsUsed, tier, setPlayer])
+  }, [config, player, questionIndex, startTime, correct, hintsUsed, tier, setPlayer, timeFormatMix])
 
   if (!config || !player) return null
 
@@ -104,7 +112,6 @@ export function TrialPage() {
 
   // Playing
   if (phase === 'playing' && question) {
-    const correctAnswer = formatTime(question.hours, question.minutes)
     return (
       <div className="min-h-full p-6 pt-8 flex flex-col items-center gap-4">
         <div className="text-slate-400 font-bold">
@@ -122,7 +129,7 @@ export function TrialPage() {
           options={question.choices}
           onSelect={handleSelect}
           selected={selected}
-          correctAnswer={selected ? correctAnswer : null}
+          correctAnswer={selected ? question.correctAnswer : null}
         />
 
         <div className="flex gap-3">
