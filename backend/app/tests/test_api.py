@@ -1,20 +1,4 @@
-import pytest
-from fastapi.testclient import TestClient
-
-from app.main import app
-from app.database import Base, engine
-
-
-@pytest.fixture(autouse=True)
-def reset_db():
-    """Reset database before each test."""
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-
-client = TestClient(app)
+from .conftest import client
 
 
 def test_health():

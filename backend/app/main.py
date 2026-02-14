@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,11 +9,32 @@ from .database import engine, Base
 from .routers import worlds, players, sessions, trials, leaderboard
 from .tiers import tier_list_for_api
 
+logger = logging.getLogger(__name__)
+
+
+def _run_alembic_migrations() -> None:
+    """Try to run Alembic migrations. Falls back to create_all if Alembic is
+    unavailable or the alembic.ini can't be found (e.g. during tests)."""
+    try:
+        import os
+        from alembic.config import Config
+        from alembic import command
+
+        alembic_ini = os.path.join(os.path.dirname(__file__), '..', 'alembic.ini')
+        if os.path.exists(alembic_ini):
+            alembic_cfg = Config(alembic_ini)
+            command.upgrade(alembic_cfg, "head")
+            return
+    except Exception as exc:
+        logger.warning("Alembic migration skipped (%s); falling back to create_all", exc)
+
+    # Fallback: create any missing tables (safe — never drops or alters)
+    Base.metadata.create_all(bind=engine)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables on startup
-    Base.metadata.create_all(bind=engine)
+    _run_alembic_migrations()
     yield
 
 
