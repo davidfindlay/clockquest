@@ -280,6 +280,12 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
             selected={selectedChoice}
             correctAnswer={selectedChoice ? correctAnswer : null}
           />
+
+          {selectedChoice && (
+            <div className={`text-xl font-bold ${selectedChoice === correctAnswer ? 'text-green-400' : 'text-red-400'}`}>
+              {selectedChoice === correctAnswer ? 'Correct!' : `Not quite! The answer was ${correctAnswer}`}
+            </div>
+          )}
         </>
       )}
 

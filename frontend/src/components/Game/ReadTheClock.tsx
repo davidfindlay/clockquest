@@ -124,6 +124,13 @@ export function ReadTheClock({ difficulty, timeFormatMix, totalQuestions = 10, o
         correctAnswer={selected ? question.correctAnswer : null}
       />
 
+      {/* Feedback */}
+      {selected && (
+        <div className={`text-xl font-bold ${selected === question.correctAnswer ? 'text-green-400' : 'text-red-400'}`}>
+          {selected === question.correctAnswer ? 'Correct!' : `Not quite! The answer was ${question.correctAnswer}`}
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-3">
         {!selected && (
