@@ -54,7 +54,7 @@ class PlayerBriefing(BaseModel):
 
 class SessionCreate(BaseModel):
     player_id: int
-    mode: str = Field(..., pattern="^(read|set|speedrun)$")
+    mode: str = Field(..., pattern="^(read|set|speedrun|quest)$")
     difficulty: str = Field(..., pattern="^(hour|half|quarter|five_min|one_min|interval)$")
     questions: int = Field(..., ge=1)
     correct: int = Field(..., ge=0)

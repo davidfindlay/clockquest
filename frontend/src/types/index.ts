@@ -31,7 +31,7 @@ export interface PlayerBriefing {
 // --- Session ---
 export interface SessionCreate {
   player_id: number
-  mode: 'read' | 'set' | 'speedrun'
+  mode: 'read' | 'set' | 'speedrun' | 'quest'
   difficulty: Difficulty
   questions: number
   correct: number
@@ -135,4 +135,4 @@ export interface LeaderboardResponse {
 export type Difficulty = 'hour' | 'half' | 'quarter' | 'five_min' | 'one_min' | 'interval'
 
 // --- Game Mode ---
-export type GameMode = 'read' | 'set' | 'speedrun'
+export type GameMode = 'read' | 'set' | 'speedrun' | 'quest'

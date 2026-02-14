@@ -28,7 +28,7 @@ def test_create_world():
     assert r.status_code == 200
     data = r.json()
     assert data["name"] == "Test World"
-    assert 6 <= len(data["join_code"]) <= 15
+    assert 9 <= len(data["join_code"]) <= 15  # 3 words × 3-5 chars each
 
 
 def test_join_world():
@@ -158,3 +158,36 @@ def test_delete_world_cascades():
 
     r2 = client.get(f"/api/players/world/{w['id']}")
     assert len(r2.json()) == 0
+
+
+def test_submit_quest_session():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "Alex", "world_id": w["id"]}).json()
+
+    r = client.post("/api/sessions", json={
+        "player_id": p["id"],
+        "mode": "quest",
+        "difficulty": "hour",
+        "questions": 10,
+        "correct": 7,
+        "hints_used": 2,
+    })
+    assert r.status_code == 200
+    data = r.json()
+    assert data["points_earned"] > 0
+    assert data["session"]["mode"] == "quest"
+
+
+def test_tiers_endpoint():
+    r = client.get("/api/tiers")
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data) == 11
+    assert data[0]["name"] == "Wood"
+    assert data[10]["name"] == "Clock Master"
+    for item in data:
+        assert "quest_run_mix" in item
+        mix = item["quest_run_mix"]
+        assert isinstance(mix, dict)
+        assert len(mix) > 0
+        assert abs(sum(mix.values()) - 1.0) < 0.01

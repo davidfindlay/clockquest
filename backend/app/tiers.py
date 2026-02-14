@@ -9,7 +9,12 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class TierDefinition:
-    """Complete definition of a single tier."""
+    """Complete definition of a single tier.
+
+    quest_run_mix maps difficulty names to minimum proportions (should sum to 1.0).
+    This controls what difficulty questions appear during quest runs at this tier.
+    Add future per-tier game settings as new fields here.
+    """
     index: int
     name: str
     color: str
@@ -17,6 +22,7 @@ class TierDefinition:
     max_power: int
     skill: str | None = None  # skill unlocked at this tier
     trial: dict | None = field(default=None, repr=False)  # trial to unlock this tier
+    quest_run_mix: dict[str, float] = field(default_factory=dict, repr=False)
 
 
 TIERS: list[TierDefinition] = [
@@ -28,6 +34,7 @@ TIERS: list[TierDefinition] = [
         max_power=99,
         skill=None,  # starting tier, no skill yet
         trial=None,   # no trial needed for starting tier
+        quest_run_mix={"hour": 1.0},
     ),
     TierDefinition(
         index=1,
@@ -43,6 +50,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 3,
             "speed_gate": False,
         },
+        quest_run_mix={"hour": 0.3, "half": 0.7},
     ),
     TierDefinition(
         index=2,
@@ -58,6 +66,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 3,
             "speed_gate": False,
         },
+        quest_run_mix={"half": 0.2, "quarter": 0.8},
     ),
     TierDefinition(
         index=3,
@@ -73,6 +82,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 2,
             "speed_gate": False,
         },
+        quest_run_mix={"quarter": 0.5, "five_min": 0.5},
     ),
     TierDefinition(
         index=4,
@@ -88,6 +98,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 2,
             "speed_gate": False,
         },
+        quest_run_mix={"quarter": 0.2, "five_min": 0.8},
     ),
     TierDefinition(
         index=5,
@@ -103,6 +114,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 1,
             "speed_gate": True,
         },
+        quest_run_mix={"five_min": 0.5, "one_min": 0.5},
     ),
     TierDefinition(
         index=6,
@@ -118,6 +130,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 1,
             "speed_gate": True,
         },
+        quest_run_mix={"five_min": 0.2, "one_min": 0.8},
     ),
     TierDefinition(
         index=7,
@@ -133,6 +146,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 1,
             "speed_gate": True,
         },
+        quest_run_mix={"five_min": 0.1, "one_min": 0.9},
     ),
     TierDefinition(
         index=8,
@@ -148,6 +162,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 0,
             "speed_gate": True,
         },
+        quest_run_mix={"one_min": 0.7, "interval": 0.3},
     ),
     TierDefinition(
         index=9,
@@ -163,6 +178,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 0,
             "speed_gate": True,
         },
+        quest_run_mix={"one_min": 0.5, "interval": 0.5},
     ),
     TierDefinition(
         index=10,
@@ -178,6 +194,7 @@ TIERS: list[TierDefinition] = [
             "max_hints": 0,
             "speed_gate": True,
         },
+        quest_run_mix={"one_min": 0.3, "interval": 0.7},
     ),
 ]
 
@@ -268,6 +285,7 @@ def tier_list_for_api() -> list[dict]:
             "min_power": t.min_power,
             "max_power": t.max_power,
             "skill": t.skill,
+            "quest_run_mix": t.quest_run_mix,
         }
         for t in TIERS
     ]

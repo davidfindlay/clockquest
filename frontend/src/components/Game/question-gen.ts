@@ -8,26 +8,109 @@ export interface ClockQuestion {
 
 /**
  * Generate a random time appropriate for the given difficulty.
+ * If `notSameAs` is provided, re-rolls to avoid the exact same time back-to-back.
  */
-export function generateTime(difficulty: Difficulty): ClockQuestion {
-  const hours = Math.floor(Math.random() * 12) + 1 // 1-12
+export function generateTime(difficulty: Difficulty, notSameAs?: ClockQuestion): ClockQuestion {
+  let attempts = 0
+  while (attempts < 20) {
+    const hours = Math.floor(Math.random() * 12) + 1 // 1-12
+    let minutes: number
 
-  switch (difficulty) {
-    case 'hour':
-      return { hours, minutes: 0 }
-    case 'half':
-      return { hours, minutes: Math.random() < 0.5 ? 0 : 30 }
-    case 'quarter':
-      return { hours, minutes: [0, 15, 30, 45][Math.floor(Math.random() * 4)] }
-    case 'five_min':
-      return { hours, minutes: Math.floor(Math.random() * 12) * 5 }
-    case 'one_min':
-      return { hours, minutes: Math.floor(Math.random() * 60) }
-    case 'interval':
-      return { hours, minutes: Math.floor(Math.random() * 60) }
-    default:
-      return { hours, minutes: 0 }
+    switch (difficulty) {
+      case 'hour':
+        minutes = 0; break
+      case 'half':
+        minutes = Math.random() < 0.5 ? 0 : 30; break
+      case 'quarter':
+        minutes = [0, 15, 30, 45][Math.floor(Math.random() * 4)]; break
+      case 'five_min':
+        minutes = Math.floor(Math.random() * 12) * 5; break
+      case 'one_min':
+        minutes = Math.floor(Math.random() * 60); break
+      case 'interval':
+        minutes = Math.floor(Math.random() * 60); break
+      default:
+        minutes = 0
+    }
+
+    const result = { hours, minutes }
+    if (!notSameAs || result.hours !== notSameAs.hours || result.minutes !== notSameAs.minutes) {
+      return result
+    }
+    attempts++
   }
+  // Fallback after many attempts (very unlikely — only for hour difficulty with 12 options)
+  const hours = Math.floor(Math.random() * 12) + 1
+  return { hours, minutes: 0 }
+}
+
+/**
+ * Generate a hint string for a question, randomly choosing between
+ * an hour hand hint and a minute hand hint (~50/50).
+ */
+export function generateHint(hours: number, minutes: number): string {
+  const showHourHint = Math.random() < 0.5
+
+  if (showHourHint) {
+    // Hour hand hint
+    if (minutes === 0) {
+      return `The short hand points to ${hours}`
+    }
+    if (minutes <= 30) {
+      return `The short hand is just past ${hours}`
+    }
+    const nextHour = hours === 12 ? 1 : hours + 1
+    return `The short hand is almost at ${nextHour}`
+  }
+
+  // Minute hand hint
+  if (minutes === 0) {
+    return 'The long hand points straight up to 12'
+  }
+  const minuteMarker = Math.floor(minutes / 5)
+  if (minutes % 5 === 0) {
+    return `The long hand points to ${minuteMarker || 12}`
+  }
+  return `The long hand is near ${minuteMarker || 12}`
+}
+
+/**
+ * Generate a random starting position for "Set the Clock" questions.
+ * The position uses the same granularity as the difficulty (e.g. on-the-hour
+ * for hour questions, on a quarter for quarter questions) but is guaranteed
+ * to differ from the correct answer.
+ */
+export function generateStartTime(difficulty: Difficulty, correct: ClockQuestion): ClockQuestion {
+  let attempts = 0
+  while (attempts < 20) {
+    const hours = Math.floor(Math.random() * 12) + 1
+    let minutes: number
+
+    switch (difficulty) {
+      case 'hour':
+        minutes = 0; break
+      case 'half':
+        minutes = Math.random() < 0.5 ? 0 : 30; break
+      case 'quarter':
+        minutes = [0, 15, 30, 45][Math.floor(Math.random() * 4)]; break
+      case 'five_min':
+        minutes = Math.floor(Math.random() * 12) * 5; break
+      case 'one_min':
+        minutes = Math.floor(Math.random() * 60); break
+      case 'interval':
+        minutes = Math.floor(Math.random() * 60); break
+      default:
+        minutes = 0
+    }
+
+    if (hours !== correct.hours || minutes !== correct.minutes) {
+      return { hours, minutes }
+    }
+    attempts++
+  }
+  // Fallback: offset the hour by 1
+  const fallbackHours = correct.hours === 12 ? 1 : correct.hours + 1
+  return { hours: fallbackHours, minutes: correct.minutes }
 }
 
 /**

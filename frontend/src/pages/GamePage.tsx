@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ReadTheClock } from '../components/Game/ReadTheClock'
 import { SetTheClock } from '../components/Game/SetTheClock'
-import { BeatTheClock } from '../components/Game/BeatTheClock'
+import { QuestRun } from '../components/Game/QuestRun'
 import { Button } from '../components/UI/Button'
 import { useGame } from '../stores/gameStore'
 import { submitSession } from '../api/sessions'
+import { getTierByIndex } from '../utils/tier-config'
 import type { Difficulty, GameMode, SessionCreate } from '../types'
 
 const DIFFICULTIES: { id: Difficulty; label: string }[] = [
@@ -19,7 +20,6 @@ const DIFFICULTIES: { id: Difficulty; label: string }[] = [
 const MODES: { id: GameMode; label: string; description: string }[] = [
   { id: 'read', label: 'Read the Clock', description: 'What time does the clock show?' },
   { id: 'set', label: 'Set the Clock', description: 'Drag hands to match the time' },
-  { id: 'speedrun', label: 'Beat the Clock', description: '60 seconds — answer as many as you can!' },
 ]
 
 export function GamePage() {
@@ -40,7 +40,17 @@ export function GamePage() {
     navigate('/results', { state: { result: sessionResult } })
   }
 
-  // Mode selection
+  // Quest mode — skip pickers, render QuestRun directly
+  if (mode === 'quest') {
+    const tierInfo = getTierByIndex(player.current_tier)
+    return (
+      <div className="min-h-full p-6 pt-8 flex flex-col items-center">
+        <QuestRun tierInfo={tierInfo} onComplete={handleComplete} />
+      </div>
+    )
+  }
+
+  // Mode selection (manual play — read/set only)
   if (!mode) {
     return (
       <div className="min-h-full p-6 pt-12 flex flex-col items-center">
@@ -86,7 +96,7 @@ export function GamePage() {
     )
   }
 
-  // Playing
+  // Playing (manual mode)
   return (
     <div className="min-h-full p-6 pt-8 flex flex-col items-center">
       {mode === 'read' && (
@@ -94,9 +104,6 @@ export function GamePage() {
       )}
       {mode === 'set' && (
         <SetTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
-      )}
-      {mode === 'speedrun' && (
-        <BeatTheClock playerId={player.id} difficulty={difficulty} onComplete={handleComplete} />
       )}
     </div>
   )

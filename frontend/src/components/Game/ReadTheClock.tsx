@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react'
 import { AnalogClock } from '../Clock/AnalogClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
 import { Button } from '../UI/Button'
-import { generateTime, generateChoices } from './question-gen'
+import { generateTime, generateChoices, generateHint } from './question-gen'
+import type { ClockQuestion } from './question-gen'
 import { formatTime } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
@@ -28,9 +29,10 @@ export function ReadTheClock({ difficulty, totalQuestions = 10, onComplete }: Re
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
   const [showHint, setShowHint] = useState(false)
+  const [hintText, setHintText] = useState('')
 
-  function newQuestion(diff: Difficulty): QuestionState {
-    const time = generateTime(diff)
+  function newQuestion(diff: Difficulty, prev?: ClockQuestion): QuestionState {
+    const time = generateTime(diff, prev)
     const choices = generateChoices(time, diff)
     return { ...time, choices }
   }
@@ -68,16 +70,18 @@ export function ReadTheClock({ difficulty, totalQuestions = 10, onComplete }: Re
     }
 
     setQuestionIndex(nextIdx)
-    setQuestion(newQuestion(difficulty))
+    setQuestion(prev => newQuestion(difficulty, prev))
     setSelected(null)
     setShowHint(false)
+    setHintText('')
     setQuestionStart(Date.now())
   }, [questionIndex, totalQuestions, difficulty, correct, hintsUsed, responseTimes, onComplete, selected, correctAnswer])
 
   const handleHint = useCallback(() => {
     setShowHint(true)
+    setHintText(generateHint(question.hours, question.minutes))
     setHintsUsed(h => h + 1)
-  }, [])
+  }, [question.hours, question.minutes])
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -103,9 +107,7 @@ export function ReadTheClock({ difficulty, totalQuestions = 10, onComplete }: Re
 
       {/* Hint */}
       {showHint && (
-        <div className="text-amber-400 text-lg">
-          The minute hand points to {Math.floor(question.minutes / 5) || 12}
-        </div>
+        <div className="text-amber-400 text-lg">{hintText}</div>
       )}
 
       {/* Choices */}

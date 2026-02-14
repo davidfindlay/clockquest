@@ -41,7 +41,7 @@ export function HubPage() {
     <div className="min-h-full p-6 pt-8 pb-20">
       <MasteryBriefing
         briefing={briefing}
-        onStartQuest={() => navigate('/play/read')}
+        onStartQuest={() => navigate('/play/quest')}
         onStartTrial={() => navigate(`/trial/${player.current_tier + 1}`)}
         onLeaderboard={() => navigate('/leaderboard')}
         onSwitchPlayer={() => { setPlayer(null); navigate('/players') }}

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { InteractiveClock } from '../Clock/InteractiveClock'
 import { Button } from '../UI/Button'
-import { generateTime } from './question-gen'
+import { generateTime, generateStartTime, generateHint } from './question-gen'
 import { formatTime, formatTimeWords } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
@@ -12,17 +12,25 @@ interface SetTheClockProps {
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
 
+function initState(difficulty: Difficulty) {
+  const target = generateTime(difficulty)
+  const start = generateStartTime(difficulty, target)
+  return { target, startHours: start.hours, startMinutes: start.minutes }
+}
+
 export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: SetTheClockProps) {
   const [questionIndex, setQuestionIndex] = useState(0)
-  const [target, setTarget] = useState(() => generateTime(difficulty))
-  const [playerHours, setPlayerHours] = useState(12)
-  const [playerMinutes, setPlayerMinutes] = useState(0)
+  const [init] = useState(() => initState(difficulty))
+  const [target, setTarget] = useState(init.target)
+  const [playerHours, setPlayerHours] = useState(init.startHours)
+  const [playerMinutes, setPlayerMinutes] = useState(init.startMinutes)
   const [submitted, setSubmitted] = useState(false)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
   const [showHint, setShowHint] = useState(false)
+  const [hintText, setHintText] = useState('')
 
   const isCorrect = playerHours === target.hours && Math.abs(playerMinutes - target.minutes) <= 2
 
@@ -60,11 +68,16 @@ export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: Set
     }
 
     setQuestionIndex(nextIdx)
-    setTarget(generateTime(difficulty))
-    setPlayerHours(12)
-    setPlayerMinutes(0)
+    setTarget(prev => {
+      const next = generateTime(difficulty, prev)
+      const start = generateStartTime(difficulty, next)
+      setPlayerHours(start.hours)
+      setPlayerMinutes(start.minutes)
+      return next
+    })
     setSubmitted(false)
     setShowHint(false)
+    setHintText('')
     setQuestionStart(Date.now())
   }, [questionIndex, totalQuestions, difficulty, correct, hintsUsed, responseTimes, onComplete])
 
@@ -95,9 +108,7 @@ export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: Set
 
       {/* Hint */}
       {showHint && (
-        <div className="text-amber-400 text-lg">
-          The minute hand should point to {target.minutes === 0 ? '12' : Math.floor(target.minutes / 5)}
-        </div>
+        <div className="text-amber-400 text-lg">{hintText}</div>
       )}
 
       {/* Interactive clock */}
@@ -120,7 +131,7 @@ export function SetTheClock({ difficulty, totalQuestions = 10, onComplete }: Set
       <div className="flex gap-3">
         {!submitted && (
           <>
-            <Button variant="ghost" size="sm" onClick={() => { setShowHint(true); setHintsUsed(h => h + 1) }} disabled={showHint}>
+            <Button variant="ghost" size="sm" onClick={() => { setShowHint(true); setHintText(generateHint(target.hours, target.minutes)); setHintsUsed(h => h + 1) }} disabled={showHint}>
               Hint
             </Button>
             <Button onClick={handleSubmit}>Check</Button>
