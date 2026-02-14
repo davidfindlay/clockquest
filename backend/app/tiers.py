@@ -36,7 +36,7 @@ TIERS: list[TierDefinition] = [
         skill=None,  # starting tier, no skill yet
         trial=None,   # no trial needed for starting tier
         quest_run_mix={"hour": 1.0},
-        time_format_mix={"digital": 1.0},
+        time_format_mix={"digital": 0.7, "digital_ampm": 0.3},
     ),
     TierDefinition(
         index=1,
@@ -53,7 +53,7 @@ TIERS: list[TierDefinition] = [
             "speed_gate": False,
         },
         quest_run_mix={"hour": 0.3, "half": 0.7},
-        time_format_mix={"digital": 0.7, "digital_ampm": 0.3},
+        time_format_mix={"digital": 0.4, "digital_ampm": 0.3, "words_past_to": 0.3},
     ),
     TierDefinition(
         index=2,
@@ -70,7 +70,7 @@ TIERS: list[TierDefinition] = [
             "speed_gate": False,
         },
         quest_run_mix={"half": 0.2, "quarter": 0.8},
-        time_format_mix={"digital": 0.4, "digital_ampm": 0.3, "words_past_to": 0.3},
+        time_format_mix={"digital": 0.3, "digital_ampm": 0.2, "words_past_to": 0.5},
     ),
     TierDefinition(
         index=3,
@@ -87,7 +87,7 @@ TIERS: list[TierDefinition] = [
             "speed_gate": False,
         },
         quest_run_mix={"quarter": 0.5, "five_min": 0.5},
-        time_format_mix={"digital": 0.3, "digital_ampm": 0.2, "words_past_to": 0.5},
+        time_format_mix={"digital": 0.1, "digital_ampm": 0.2, "words_past_to": 0.7},
     ),
     TierDefinition(
         index=4,
