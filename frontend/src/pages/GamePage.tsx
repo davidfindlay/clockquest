@@ -53,6 +53,7 @@ export function GamePage() {
           advancedSetHintMode={advancedSetHintMode}
           advancedSetHintPenalty={tierInfo.setClockAdvancedHintPenalty}
           onComplete={handleComplete}
+          onExit={() => navigate('/hub')}
         />
       </div>
     )

@@ -6,6 +6,7 @@ import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateChoices, generateHint } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
+import exitIcon from '../../assets/exit_quest.svg'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 import type { TierInfo } from '../../utils/tier-config'
@@ -16,6 +17,7 @@ interface QuestRunProps {
   advancedSetHintMode?: boolean
   advancedSetHintPenalty?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
+  onExit: () => void
 }
 
 type QuestionMode = 'read' | 'set'
@@ -156,8 +158,9 @@ function getPrimaryDifficulty(mix: Record<string, number>): Difficulty {
   return best
 }
 
-export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = false, advancedSetHintPenalty = 2, onComplete }: QuestRunProps) {
+export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = false, advancedSetHintPenalty = 2, onComplete, onExit }: QuestRunProps) {
   const [questions] = useState<QuestQuestion[]>(() => buildQuestionPlan(tierInfo.questRunMix, totalQuestions, tierInfo.timeFormatMix))
+  const [showExitModal, setShowExitModal] = useState(false)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
@@ -274,7 +277,30 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
   }, [q.mode, q.display, q.hours, q.minutes, advancedSetHintMode, advancedSetHintPenalty])
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6 w-full relative">
+      {/* Exit button */}
+      <button
+        onClick={() => setShowExitModal(true)}
+        className="absolute top-0 left-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold text-sm transition-all active:scale-95"
+      >
+        <img src={exitIcon} alt="" className="w-5 h-5" />
+        Exit Quest
+      </button>
+
+      {/* Exit confirmation modal */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-slate-800 border border-slate-600 rounded-2xl p-6 max-w-sm w-full mx-4 text-center shadow-xl">
+            <h3 className="text-xl font-bold mb-2">Exit Quest?</h3>
+            <p className="text-slate-400 mb-6">Your progress on this quest run will be lost.</p>
+            <div className="flex gap-3 justify-center">
+              <Button variant="secondary" size="md" onClick={() => setShowExitModal(false)}>No, Keep Going</Button>
+              <Button variant="primary" size="md" onClick={onExit}>Yes, Exit</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress */}
       <div className="flex items-center gap-3 text-slate-400">
         <span className="text-lg font-bold">Question {questionIndex + 1} / {totalQuestions}</span>
