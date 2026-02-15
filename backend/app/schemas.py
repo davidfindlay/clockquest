@@ -47,7 +47,7 @@ class PlayerBriefing(BaseModel):
     next_tier_threshold: int | None
     tier_progress_pct: float
     mastered_skills: list[str]
-    quests: list["QuestResponse"]
+    challenges: list["ChallengeResponse"]
 
 
 # --- Session ---
@@ -89,7 +89,7 @@ class SessionResult(BaseModel):
     new_clock_power: float
     new_tier: int
     tier_up: bool
-    quest_updates: list["QuestResponse"]
+    challenge_updates: list["ChallengeResponse"]
 
 
 # --- Tier Trial ---
@@ -138,16 +138,39 @@ class TierTrialResult(BaseModel):
 
 # --- Quest ---
 
-class QuestResponse(BaseModel):
+class ChallengeResponse(BaseModel):
     id: int
     player_id: int
-    quest_type: str
+    challenge_type: str
     description: str
     target: float
     progress: float
     completed: bool
     mode: str | None
     difficulty: str | None
+
+    class Config:
+        from_attributes = True
+
+
+# --- Quest Run Tracking ---
+
+class QuestRunCreate(BaseModel):
+    player_id: int
+    started_at: datetime
+    ended_at: datetime
+    duration_seconds: int = Field(..., ge=0)
+    completed: bool = False
+
+
+class QuestRunResponse(BaseModel):
+    id: int
+    player_id: int
+    started_at: datetime
+    ended_at: datetime
+    duration_seconds: int
+    completed: bool
+    created_at: datetime
 
     class Config:
         from_attributes = True

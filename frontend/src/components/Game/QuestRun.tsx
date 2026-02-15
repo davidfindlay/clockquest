@@ -4,20 +4,22 @@ import { InteractiveClock } from '../Clock/InteractiveClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateChoices, generateHint } from './question-gen'
-import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat, getSnapDegrees } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
 import { SoundToggle } from '../UI/SoundToggle'
 import exitIcon from '../../assets/exit_quest.svg'
+import { submitQuestRun } from '../../api/challenges'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 import type { TierInfo } from '../../utils/tier-config'
 
 interface QuestRunProps {
+  playerId: number
   tierInfo: TierInfo
   totalQuestions?: number
   advancedSetHintMode?: boolean
   advancedSetHintPenalty?: number
-  onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
+  onComplete: (result: Omit<SessionCreate, 'player_id'>) => void | Promise<void>
   onExit: () => void
 }
 
@@ -159,7 +161,7 @@ function getPrimaryDifficulty(mix: Record<string, number>): Difficulty {
   return best
 }
 
-export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = false, advancedSetHintPenalty = 2, onComplete, onExit }: QuestRunProps) {
+export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetHintMode = false, advancedSetHintPenalty = 2, onComplete, onExit }: QuestRunProps) {
   const [questions] = useState<QuestQuestion[]>(() => buildQuestionPlan(tierInfo.questRunMix, totalQuestions, tierInfo.timeFormatMix))
   const [showExitModal, setShowExitModal] = useState(false)
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -169,6 +171,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
   const [maxStreak, setMaxStreak] = useState(0)
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
+  const [runStartedAt] = useState(() => Date.now())
 
   // Read mode state
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null)
@@ -236,14 +239,15 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
     }
   }, [submitted, advancedSetHintMode, q.mode, showHint])
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback(async () => {
     const nextIdx = questionIndex + 1
     if (nextIdx >= totalQuestions) {
       const avgMs = responseTimes.length > 0
         ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
         : 0
 
-      onComplete({
+      await recordQuestRun(true)
+      await onComplete({
         mode: 'quest',
         difficulty: getPrimaryDifficulty(tierInfo.questRunMix),
         questions: totalQuestions,
@@ -277,6 +281,36 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
     setHintsUsed(h => h + 1)
   }, [q.mode, q.display, q.hours, q.minutes, advancedSetHintMode, advancedSetHintPenalty])
 
+  function persistQuestRunLocal(startedAtMs: number, endedAtMs: number, durationSeconds: number, completed: boolean) {
+    const key = 'clockquest.questRunLogs.v1'
+    const raw = localStorage.getItem(key)
+    const logs = raw ? JSON.parse(raw) : []
+    logs.push({ startedAt: new Date(startedAtMs).toISOString(), endedAt: new Date(endedAtMs).toISOString(), durationSeconds, completed })
+    localStorage.setItem(key, JSON.stringify(logs.slice(-200)))
+  }
+
+  async function recordQuestRun(completed: boolean) {
+    const endedAt = Date.now()
+    const durationSeconds = Math.max(0, Math.round((endedAt - runStartedAt) / 1000))
+    persistQuestRunLocal(runStartedAt, endedAt, durationSeconds, completed)
+    try {
+      await submitQuestRun({
+        player_id: playerId,
+        started_at: new Date(runStartedAt).toISOString(),
+        ended_at: new Date(endedAt).toISOString(),
+        duration_seconds: durationSeconds,
+        completed,
+      })
+    } catch {
+      // Keep local log even if backend call fails
+    }
+  }
+
+  async function handleExitConfirmed() {
+    await recordQuestRun(false)
+    onExit()
+  }
+
   return (
     <div className="flex flex-col items-center gap-6 w-full">
       {/* Top bar: exit + sound toggle */}
@@ -299,7 +333,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
             <p className="text-slate-400 mb-6">Your progress on this quest run will be lost.</p>
             <div className="flex gap-3 justify-center">
               <Button variant="secondary" size="md" onClick={() => setShowExitModal(false)}>No, Keep Going</Button>
-              <Button variant="primary" size="md" onClick={onExit}>Yes, Exit</Button>
+              <Button variant="primary" size="md" onClick={handleExitConfirmed}>Yes, Exit</Button>
             </div>
           </div>
         </div>
@@ -367,7 +401,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
             hours={playerHours}
             minutes={playerMinutes}
             onTimeChange={handleTimeChange}
-            minuteSnapDegrees={tierInfo.minuteSnapDegrees}
+            minuteSnapDegrees={getSnapDegrees(q.difficulty)}
             size={280}
             showDigitalReadout={showHint}
           />

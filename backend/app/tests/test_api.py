@@ -1,4 +1,7 @@
-from .conftest import client
+from datetime import datetime, timedelta, timezone
+
+from app.models import Quest
+from .conftest import client, _TestSessionLocal
 
 
 def test_health():
@@ -87,7 +90,7 @@ def test_player_briefing():
     data = r.json()
     assert data["tier_name"] == "Wood"
     assert data["player"]["clock_power"] == 0
-    assert len(data["quests"]) > 0
+    assert len(data["challenges"]) > 0
 
 
 def test_trial_config():
@@ -175,3 +178,119 @@ def test_tiers_endpoint():
         assert isinstance(mix, dict)
         assert len(mix) > 0
         assert abs(sum(mix.values()) - 1.0) < 0.01
+
+
+def test_record_quest_run_and_daily_progression():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "Alex", "world_id": w["id"]}).json()
+
+    now = datetime.now(timezone.utc)
+
+    # 10 minutes today -> daily target 10 completed, next active target should be 20
+    r = client.post("/api/challenges/quest-run", json={
+        "player_id": p["id"],
+        "started_at": (now - timedelta(minutes=10)).isoformat(),
+        "ended_at": now.isoformat(),
+        "duration_seconds": 600,
+        "completed": True,
+    })
+    assert r.status_code == 200
+
+    b = client.get(f"/api/players/{p['id']}/briefing")
+    assert b.status_code == 200
+    data = b.json()
+    daily = next(c for c in data["challenges"] if c["challenge_type"] == "daily_play")
+    assert daily["target"] == 20
+    assert daily["progress"] >= 10
+
+
+def test_record_quest_run_and_streak_progression():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "Streaky", "world_id": w["id"]}).json()
+
+    now = datetime.now(timezone.utc)
+    # 3 consecutive days, 10 minutes each
+    for d in [2, 1, 0]:
+        end = now - timedelta(days=d)
+        start = end - timedelta(minutes=10)
+        r = client.post("/api/challenges/quest-run", json={
+            "player_id": p["id"],
+            "started_at": start.isoformat(),
+            "ended_at": end.isoformat(),
+            "duration_seconds": 600,
+            "completed": d == 0,
+        })
+        assert r.status_code == 200
+
+    b = client.get(f"/api/players/{p['id']}/briefing")
+    assert b.status_code == 200
+    data = b.json()
+    streak = next(c for c in data["challenges"] if c["challenge_type"] == "daily_streak")
+    assert streak["target"] == 7
+    assert streak["progress"] >= 3
+
+
+def test_briefing_has_no_duplicate_active_challenge_types():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "NoDupes", "world_id": w["id"]}).json()
+
+    # Call briefing repeatedly (simulates rapid screen switches)
+    for _ in range(3):
+        r = client.get(f"/api/players/{p['id']}/briefing")
+        assert r.status_code == 200
+
+    data = client.get(f"/api/players/{p['id']}/briefing").json()
+    types = [c["challenge_type"] for c in data["challenges"]]
+    assert sorted(types) == ["daily_play", "daily_streak"]
+
+
+def test_daily_challenge_resets_to_10_on_new_local_day():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "ResetDaily", "world_id": w["id"]}).json()
+
+    # Seed stale active daily_play card from yesterday at 30/30
+    db = _TestSessionLocal()
+    try:
+        stale = Quest(
+            player_id=p["id"],
+            quest_type="daily_play",
+            description="Play 30 minutes today",
+            target=30,
+            progress=30,
+            completed=False,
+            mode="quest",
+            difficulty=None,
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+        )
+        db.add(stale)
+        db.commit()
+    finally:
+        db.close()
+
+    data = client.get(f"/api/players/{p['id']}/briefing").json()
+    daily = next(c for c in data["challenges"] if c["challenge_type"] == "daily_play")
+    assert daily["target"] == 10
+    assert daily["progress"] == 0
+
+
+def test_streak_shows_yesterday_progress_before_today_play():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "StreakCarry", "world_id": w["id"]}).json()
+
+    now = datetime.now(timezone.utc)
+    # Yesterday only: 10 minutes
+    end = now - timedelta(days=1)
+    start = end - timedelta(minutes=10)
+    r = client.post("/api/challenges/quest-run", json={
+        "player_id": p["id"],
+        "started_at": start.isoformat(),
+        "ended_at": end.isoformat(),
+        "duration_seconds": 600,
+        "completed": True,
+    })
+    assert r.status_code == 200
+
+    data = client.get(f"/api/players/{p['id']}/briefing").json()
+    streak = next(c for c in data["challenges"] if c["challenge_type"] == "daily_streak")
+    assert streak["target"] == 3
+    assert streak["progress"] == 1

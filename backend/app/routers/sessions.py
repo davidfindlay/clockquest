@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from ..database import get_db
 from ..models import Player, Session
-from ..schemas import SessionCreate, SessionResponse, SessionResult, PlayerResponse, QuestResponse
+from ..schemas import SessionCreate, SessionResponse, SessionResult, PlayerResponse, ChallengeResponse
 from ..scoring import calculate_session_points
 from ..quests import update_quest_progress, generate_quests
 
@@ -51,16 +51,16 @@ def submit_session(data: SessionCreate, db: DbSession = Depends(get_db)):
     db.refresh(session)
     db.refresh(player)
 
-    # Update quest progress
-    quests = update_quest_progress(db, player, session)
+    # Update challenge progress
+    challenges = update_quest_progress(db, player, session)
     # Regenerate if any completed
-    quests = generate_quests(db, player)
+    challenges = generate_quests(db, player)
 
-    quest_responses = [
-        QuestResponse(
+    challenge_responses = [
+        ChallengeResponse(
             id=q.id,
             player_id=q.player_id,
-            quest_type=q.quest_type,
+            challenge_type=q.quest_type,
             description=q.description,
             target=q.target,
             progress=q.progress,
@@ -68,7 +68,7 @@ def submit_session(data: SessionCreate, db: DbSession = Depends(get_db)):
             mode=q.mode,
             difficulty=q.difficulty,
         )
-        for q in quests
+        for q in challenges
     ]
 
     return SessionResult(
@@ -78,5 +78,5 @@ def submit_session(data: SessionCreate, db: DbSession = Depends(get_db)):
         new_clock_power=player.clock_power,
         new_tier=player.current_tier,
         tier_up=player.current_tier > old_tier,
-        quest_updates=quest_responses,
+        challenge_updates=challenge_responses,
     )

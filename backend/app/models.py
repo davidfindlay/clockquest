@@ -31,6 +31,7 @@ class Player(Base):
     sessions = relationship("Session", back_populates="player", cascade="all, delete-orphan")
     tier_trials = relationship("TierTrial", back_populates="player", cascade="all, delete-orphan")
     quests = relationship("Quest", back_populates="player", cascade="all, delete-orphan")
+    quest_runs = relationship("QuestRun", back_populates="player", cascade="all, delete-orphan")
 
 
 class Session(Base):
@@ -83,3 +84,17 @@ class Quest(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     player = relationship("Player", back_populates="quests")
+
+
+class QuestRun(Base):
+    __tablename__ = "quest_runs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    started_at = Column(DateTime, nullable=False)
+    ended_at = Column(DateTime, nullable=False)
+    duration_seconds = Column(Integer, nullable=False)
+    completed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    player = relationship("Player", back_populates="quest_runs")
