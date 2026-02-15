@@ -144,6 +144,34 @@ def generate_quests(db: DbSession, player: Player) -> list[Quest]:
     today_minutes = minutes_by_day.get(today, 0.0)
     streak_days = _current_streak_days(minutes_by_day)
 
+    # Refresh existing active cards from current local-day metrics.
+    # This prevents stale carry-over such as showing yesterday's 30/30 today.
+    active = (
+        db.query(Quest)
+        .filter(Quest.player_id == player.id, Quest.completed == False)
+        .all()
+    )
+    changed = False
+    for quest in active:
+        if quest.quest_type == "daily_play":
+            new_progress = min(today_minutes, quest.target)
+            if quest.progress != new_progress:
+                quest.progress = new_progress
+                changed = True
+            if quest.completed != (today_minutes >= quest.target):
+                quest.completed = today_minutes >= quest.target
+                changed = True
+        elif quest.quest_type == "daily_streak":
+            new_progress = min(streak_days, quest.target)
+            if quest.progress != new_progress:
+                quest.progress = new_progress
+                changed = True
+            if quest.completed != (streak_days >= quest.target):
+                quest.completed = streak_days >= quest.target
+                changed = True
+    if changed:
+        db.commit()
+
     _ensure_track(
         db,
         player,
