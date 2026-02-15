@@ -7,7 +7,6 @@ import { Button } from '../components/UI/Button'
 import { useGame } from '../stores/gameStore'
 import { submitSession } from '../api/sessions'
 import { getTierByIndex } from '../utils/tier-config'
-import { SET_CLOCK_ADVANCED_HINT_PROGRESS_THRESHOLD } from '../utils/game-config'
 import type { Difficulty, GameMode, SessionCreate } from '../types'
 
 const DIFFICULTIES: { id: Difficulty; label: string }[] = [
@@ -101,7 +100,7 @@ export function GamePage() {
   const tierInfo = getTierByIndex(player.current_tier)
   const tierRange = Math.max(1, tierInfo.maxPower - tierInfo.minPower)
   const tierProgressPct = ((player.clock_power - tierInfo.minPower) / tierRange) * 100
-  const advancedSetHintMode = tierProgressPct >= SET_CLOCK_ADVANCED_HINT_PROGRESS_THRESHOLD
+  const advancedSetHintMode = tierProgressPct >= tierInfo.setClockAdvancedHintProgressThreshold
 
   return (
     <div className="min-h-full p-6 pt-8 flex flex-col items-center">
@@ -114,6 +113,7 @@ export function GamePage() {
           difficulty={difficulty}
           timeFormatMix={tierInfo.timeFormatMix}
           advancedHintMode={advancedSetHintMode}
+          advancedHintPenalty={tierInfo.setClockAdvancedHintPenalty}
           onComplete={handleComplete}
         />
       )}

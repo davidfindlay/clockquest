@@ -4,7 +4,6 @@ import { Button } from '../UI/Button'
 import { generateTime, generateStartTime } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
-import { SET_CLOCK_ADVANCED_HINT_PENALTY } from '../../utils/game-config'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
@@ -14,6 +13,7 @@ interface SetTheClockProps {
   timeFormatMix?: Record<string, number>
   totalQuestions?: number
   advancedHintMode?: boolean
+  advancedHintPenalty?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
 
@@ -42,6 +42,7 @@ export function SetTheClock({
   timeFormatMix,
   totalQuestions = 10,
   advancedHintMode = false,
+  advancedHintPenalty = 2,
   onComplete,
 }: SetTheClockProps) {
   const mix = timeFormatMix ?? { digital: 1 }
@@ -191,7 +192,7 @@ export function SetTheClock({
                 setShowHint(true)
                 setHintsUsed(h => h + 1)
                 if (advancedHintMode) {
-                  setHintPenalty(p => p + SET_CLOCK_ADVANCED_HINT_PENALTY)
+                  setHintPenalty(p => p + advancedHintPenalty)
                 }
               }}
               disabled={showHint}

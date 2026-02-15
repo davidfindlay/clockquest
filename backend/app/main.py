@@ -64,3 +64,4 @@ def health_check():
 def get_tiers():
     """Return all tier definitions. Used by frontend to avoid hardcoded tier data."""
     return tier_list_for_api()
+
