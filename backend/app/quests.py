@@ -54,6 +54,13 @@ def _goal_from_completed(completed_count: int, goals: list[int]) -> int:
     return goals[min(completed_count, len(goals) - 1)]
 
 
+def _quest_local_created_date(quest: Quest):
+    created = quest.created_at
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    return created.astimezone(BRISBANE_TZ).date()
+
+
 def _ensure_track(
     db: DbSession,
     player: Player,
@@ -62,6 +69,7 @@ def _ensure_track(
     description_builder,
     goals: list[int],
     metric_value: float,
+    completed_count_override: int | None = None,
 ) -> None:
     """Ensure one active quest exists for a progression track.
 
@@ -76,11 +84,14 @@ def _ensure_track(
     if active:
         return
 
-    completed_count = (
-        db.query(Quest)
-        .filter(Quest.player_id == player.id, Quest.quest_type == quest_type, Quest.completed == True)
-        .count()
-    )
+    if completed_count_override is not None:
+        completed_count = completed_count_override
+    else:
+        completed_count = (
+            db.query(Quest)
+            .filter(Quest.player_id == player.id, Quest.quest_type == quest_type, Quest.completed == True)
+            .count()
+        )
 
     while True:
         target = _goal_from_completed(completed_count, goals)
@@ -144,6 +155,30 @@ def generate_quests(db: DbSession, player: Player) -> list[Quest]:
     today_minutes = minutes_by_day.get(today, 0.0)
     streak_days = _current_streak_days(minutes_by_day)
 
+    # Daily challenge resets each local day: retire any active daily card from prior days.
+    stale_daily = (
+        db.query(Quest)
+        .filter(Quest.player_id == player.id, Quest.quest_type == "daily_play", Quest.completed == False)
+        .all()
+    )
+    stale_changed = False
+    for q in stale_daily:
+        if _quest_local_created_date(q) < today:
+            q.completed = True
+            stale_changed = True
+    if stale_changed:
+        db.commit()
+
+    daily_completed_today = 0
+    completed_daily = (
+        db.query(Quest)
+        .filter(Quest.player_id == player.id, Quest.quest_type == "daily_play", Quest.completed == True)
+        .all()
+    )
+    for q in completed_daily:
+        if _quest_local_created_date(q) == today:
+            daily_completed_today += 1
+
     # Refresh existing active cards from current local-day metrics.
     # This prevents stale carry-over such as showing yesterday's 30/30 today.
     active = (
@@ -179,6 +214,7 @@ def generate_quests(db: DbSession, player: Player) -> list[Quest]:
         description_builder=lambda target: f"Play {target} minutes today",
         goals=DAILY_MINUTES_GOALS,
         metric_value=today_minutes,
+        completed_count_override=daily_completed_today,
     )
     _ensure_track(
         db,

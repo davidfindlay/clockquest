@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-from .conftest import client
+from app.models import Quest
+from .conftest import client, _TestSessionLocal
 
 
 def test_health():
@@ -241,3 +242,32 @@ def test_briefing_has_no_duplicate_active_challenge_types():
     data = client.get(f"/api/players/{p['id']}/briefing").json()
     types = [c["challenge_type"] for c in data["challenges"]]
     assert sorted(types) == ["daily_play", "daily_streak"]
+
+
+def test_daily_challenge_resets_to_10_on_new_local_day():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "ResetDaily", "world_id": w["id"]}).json()
+
+    # Seed stale active daily_play card from yesterday at 30/30
+    db = _TestSessionLocal()
+    try:
+        stale = Quest(
+            player_id=p["id"],
+            quest_type="daily_play",
+            description="Play 30 minutes today",
+            target=30,
+            progress=30,
+            completed=False,
+            mode="quest",
+            difficulty=None,
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+        )
+        db.add(stale)
+        db.commit()
+    finally:
+        db.close()
+
+    data = client.get(f"/api/players/{p['id']}/briefing").json()
+    daily = next(c for c in data["challenges"] if c["challenge_type"] == "daily_play")
+    assert daily["target"] == 10
+    assert daily["progress"] == 0
