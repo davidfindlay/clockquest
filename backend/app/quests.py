@@ -124,6 +124,21 @@ def generate_quests(db: DbSession, player: Player) -> list[Quest]:
             q.completed = True
         db.commit()
 
+    # Deduplicate active cards by type (can happen if multiple requests race).
+    deduped_any = False
+    for t in ["daily_play", "daily_streak"]:
+        active = (
+            db.query(Quest)
+            .filter(Quest.player_id == player.id, Quest.quest_type == t, Quest.completed == False)
+            .order_by(Quest.id.asc())
+            .all()
+        )
+        for dup in active[1:]:
+            dup.completed = True
+            deduped_any = True
+    if deduped_any:
+        db.commit()
+
     minutes_by_day = _minutes_by_day(db, player.id)
     today = datetime.now(BRISBANE_TZ).date()
     today_minutes = minutes_by_day.get(today, 0.0)

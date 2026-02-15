@@ -227,3 +227,17 @@ def test_record_quest_run_and_streak_progression():
     streak = next(c for c in data["challenges"] if c["challenge_type"] == "daily_streak")
     assert streak["target"] == 7
     assert streak["progress"] >= 3
+
+
+def test_briefing_has_no_duplicate_active_challenge_types():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "NoDupes", "world_id": w["id"]}).json()
+
+    # Call briefing repeatedly (simulates rapid screen switches)
+    for _ in range(3):
+        r = client.get(f"/api/players/{p['id']}/briefing")
+        assert r.status_code == 200
+
+    data = client.get(f"/api/players/{p['id']}/briefing").json()
+    types = [c["challenge_type"] for c in data["challenges"]]
+    assert sorted(types) == ["daily_play", "daily_streak"]
