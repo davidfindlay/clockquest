@@ -6,6 +6,7 @@ import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateChoices, generateHint } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
+import { SoundToggle } from '../UI/SoundToggle'
 import exitIcon from '../../assets/exit_quest.svg'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
@@ -277,15 +278,18 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
   }, [q.mode, q.display, q.hours, q.minutes, advancedSetHintMode, advancedSetHintPenalty])
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full relative">
-      {/* Exit button */}
-      <button
-        onClick={() => setShowExitModal(true)}
-        className="absolute top-0 left-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold text-sm transition-all active:scale-95"
-      >
-        <img src={exitIcon} alt="" className="w-5 h-5" />
-        Exit Quest
-      </button>
+    <div className="flex flex-col items-center gap-6 w-full">
+      {/* Top bar: exit + sound toggle */}
+      <div className="flex w-full justify-between items-center">
+        <button
+          onClick={() => setShowExitModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold text-sm transition-all active:scale-95"
+        >
+          <img src={exitIcon} alt="" className="w-5 h-5" />
+          Exit Quest
+        </button>
+        <SoundToggle />
+      </div>
 
       {/* Exit confirmation modal */}
       {showExitModal && (
