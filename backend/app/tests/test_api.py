@@ -271,3 +271,26 @@ def test_daily_challenge_resets_to_10_on_new_local_day():
     daily = next(c for c in data["challenges"] if c["challenge_type"] == "daily_play")
     assert daily["target"] == 10
     assert daily["progress"] == 0
+
+
+def test_streak_shows_yesterday_progress_before_today_play():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "StreakCarry", "world_id": w["id"]}).json()
+
+    now = datetime.now(timezone.utc)
+    # Yesterday only: 10 minutes
+    end = now - timedelta(days=1)
+    start = end - timedelta(minutes=10)
+    r = client.post("/api/challenges/quest-run", json={
+        "player_id": p["id"],
+        "started_at": start.isoformat(),
+        "ended_at": end.isoformat(),
+        "duration_seconds": 600,
+        "completed": True,
+    })
+    assert r.status_code == 200
+
+    data = client.get(f"/api/players/{p['id']}/briefing").json()
+    streak = next(c for c in data["challenges"] if c["challenge_type"] == "daily_streak")
+    assert streak["target"] == 3
+    assert streak["progress"] == 1

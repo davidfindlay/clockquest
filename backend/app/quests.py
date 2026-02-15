@@ -41,9 +41,21 @@ def _minutes_by_day(db: DbSession, player_id: int) -> dict:
 
 
 def _current_streak_days(minutes_by_day: dict) -> int:
+    """Return current streak length with 'today pending' behavior.
+
+    If today's 10-minute target is not yet met, keep yesterday's streak showing
+    (so progress can read 1/3 this morning after hitting yesterday).
+    """
     today = datetime.now(BRISBANE_TZ).date()
+
+    if minutes_by_day.get(today, 0.0) >= STREAK_REQUIRED_MINUTES_PER_DAY:
+        day = today
+    elif minutes_by_day.get(today.fromordinal(today.toordinal() - 1), 0.0) >= STREAK_REQUIRED_MINUTES_PER_DAY:
+        day = today.fromordinal(today.toordinal() - 1)
+    else:
+        return 0
+
     streak = 0
-    day = today
     while minutes_by_day.get(day, 0.0) >= STREAK_REQUIRED_MINUTES_PER_DAY:
         streak += 1
         day = day.fromordinal(day.toordinal() - 1)
