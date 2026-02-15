@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session as DbSession
 
-from .models import Player, Quest, Session
+from .models import Player, Quest, Session, QuestRun
 
 BRISBANE_TZ = ZoneInfo("Australia/Brisbane")
 DAILY_MINUTES_GOALS = [10, 20, 30]
@@ -21,24 +21,22 @@ STREAK_DAY_GOALS = [3, 7, 14, 21, 30]
 STREAK_REQUIRED_MINUTES_PER_DAY = 10
 
 
-def _session_minutes(session: Session) -> float:
-    if session.avg_response_ms is not None and session.avg_response_ms > 0:
-        return (session.avg_response_ms * session.questions) / 60_000
-    return (8_000 * session.questions) / 60_000
+def _quest_run_minutes(run: QuestRun) -> float:
+    return run.duration_seconds / 60.0
 
 
-def _session_local_date(session: Session):
-    created = session.created_at
+def _quest_run_local_date(run: QuestRun):
+    created = run.started_at
     if created.tzinfo is None:
         created = created.replace(tzinfo=timezone.utc)
     return created.astimezone(BRISBANE_TZ).date()
 
 
 def _minutes_by_day(db: DbSession, player_id: int) -> dict:
-    sessions = db.query(Session).filter(Session.player_id == player_id).all()
+    quest_runs = db.query(QuestRun).filter(QuestRun.player_id == player_id).all()
     by_day = defaultdict(float)
-    for s in sessions:
-        by_day[_session_local_date(s)] += _session_minutes(s)
+    for run in quest_runs:
+        by_day[_quest_run_local_date(run)] += _quest_run_minutes(run)
     return dict(by_day)
 
 

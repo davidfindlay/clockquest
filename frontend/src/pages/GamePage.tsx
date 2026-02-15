@@ -50,6 +50,7 @@ export function GamePage() {
     return (
       <div className="min-h-full p-6 pt-8 flex flex-col items-center">
         <QuestRun
+          playerId={player.id}
           tierInfo={tierInfo}
           advancedSetHintMode={advancedSetHintMode}
           advancedSetHintPenalty={tierInfo.setClockAdvancedHintPenalty}

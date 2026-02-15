@@ -153,6 +153,29 @@ class ChallengeResponse(BaseModel):
         from_attributes = True
 
 
+# --- Quest Run Tracking ---
+
+class QuestRunCreate(BaseModel):
+    player_id: int
+    started_at: datetime
+    ended_at: datetime
+    duration_seconds: int = Field(..., ge=0)
+    completed: bool = False
+
+
+class QuestRunResponse(BaseModel):
+    id: int
+    player_id: int
+    started_at: datetime
+    ended_at: datetime
+    duration_seconds: int
+    completed: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # --- Leaderboard ---
 
 class LeaderboardEntry(BaseModel):

@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .database import engine, Base
-from .routers import worlds, players, sessions, trials, leaderboard
+from .routers import worlds, players, sessions, trials, leaderboard, challenges
 from .tiers import tier_list_for_api
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,7 @@ app.include_router(players.router)
 app.include_router(sessions.router)
 app.include_router(trials.router)
 app.include_router(leaderboard.router)
+app.include_router(challenges.router)
 
 
 @app.get("/api/health")
