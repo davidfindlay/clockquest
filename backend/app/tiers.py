@@ -27,7 +27,7 @@ class TierDefinition:
     # Percent progress through this tier (0-100) at which Set The Clock switches
     # to advanced hint mode. Example: 70 means advanced mode starts once the
     # player reaches >=70% progress within their current tier.
-    set_clock_advanced_hint_progress_threshold: int = 70
+    set_clock_advanced_hint_progress_threshold: int = 50
     # Score penalty applied each time hint is used while in advanced hint mode.
     set_clock_advanced_hint_penalty: int = 2
 
@@ -62,8 +62,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"hour": 0.3, "half": 0.7},
         time_format_mix={"digital": 0.4, "digital_ampm": 0.3, "words_past_to": 0.3},
-        set_clock_advanced_hint_progress_threshold=100,
-        set_clock_advanced_hint_penalty=0,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=1,
     ),
     TierDefinition(
         index=2,
@@ -81,8 +81,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"half": 0.2, "quarter": 0.8},
         time_format_mix={"digital": 0.3, "digital_ampm": 0.2, "words_past_to": 0.5},
-        set_clock_advanced_hint_progress_threshold=90,
-        set_clock_advanced_hint_penalty=1,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
         index=3,
@@ -100,8 +100,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"quarter": 0.5, "five_min": 0.5},
         time_format_mix={"digital": 0.1, "digital_ampm": 0.2, "words_past_to": 0.7},
-        set_clock_advanced_hint_progress_threshold=85,
-        set_clock_advanced_hint_penalty=1,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
         index=4,
@@ -119,8 +119,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"quarter": 0.2, "five_min": 0.8},
         time_format_mix={"digital": 0.2, "digital_ampm": 0.2, "words_past_to": 0.6},
-        set_clock_advanced_hint_progress_threshold=80,
-        set_clock_advanced_hint_penalty=1,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
         index=5,
@@ -138,7 +138,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"five_min": 0.5, "one_min": 0.5},
         time_format_mix={"digital": 0.2, "words_past_to": 0.5, "full_words": 0.3},
-        set_clock_advanced_hint_progress_threshold=75,
+        set_clock_advanced_hint_progress_threshold=0,
         set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
@@ -157,7 +157,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"five_min": 0.2, "one_min": 0.8},
         time_format_mix={"digital": 0.1, "words_past_to": 0.4, "full_words": 0.5},
-        set_clock_advanced_hint_progress_threshold=75,
+        set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
@@ -176,7 +176,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"five_min": 0.1, "one_min": 0.9},
         time_format_mix={"words_past_to": 0.3, "full_words": 0.7},
-        set_clock_advanced_hint_progress_threshold=70,
+        set_clock_advanced_hint_progress_threshold=0,
         set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
@@ -195,8 +195,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"one_min": 0.7, "interval": 0.3},
         time_format_mix={"words_past_to": 0.2, "full_words": 0.8},
-        set_clock_advanced_hint_progress_threshold=65,
-        set_clock_advanced_hint_penalty=3,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
         index=9,
@@ -214,8 +214,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"one_min": 0.5, "interval": 0.5},
         time_format_mix={"digital_ampm": 0.1, "full_words": 0.9},
-        set_clock_advanced_hint_progress_threshold=65,
-        set_clock_advanced_hint_penalty=3,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=2,
     ),
     TierDefinition(
         index=10,
@@ -233,8 +233,8 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"one_min": 0.3, "interval": 0.7},
         time_format_mix={"full_words": 1.0},
-        set_clock_advanced_hint_progress_threshold=60,
-        set_clock_advanced_hint_penalty=3,
+        set_clock_advanced_hint_progress_threshold=50,
+        set_clock_advanced_hint_penalty=2,
     ),
 ]
 
