@@ -11,6 +11,7 @@ import { TrialPage } from './pages/TrialPage'
 import { LeaderboardPage } from './pages/LeaderboardPage'
 import { JoinPage } from './pages/JoinPage'
 import { loadTiers } from './utils/tier-config'
+import { preloadSounds } from './utils/sounds'
 import type { World, Player } from './types'
 import './App.css'
 
@@ -20,8 +21,8 @@ function AppRoutes() {
   const [world, setWorldRaw] = useState<World | null>(loadWorld)
   const [player, setPlayerRaw] = useState<Player | null>(loadPlayer)
 
-  // Load tier config from backend on app startup
-  useEffect(() => { loadTiers() }, [])
+  // Load tier config + preload sounds on app startup
+  useEffect(() => { loadTiers(); preloadSounds() }, [])
 
   const setWorld = useCallback((w: World | null) => {
     setWorldRaw(w)

@@ -1,13 +1,20 @@
+import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/UI/Button'
 import { Card } from '../components/UI/Card'
 import { TierBadge } from '../components/Progression/TierBadge'
+import { playSound } from '../utils/sounds'
 import type { SessionResult } from '../types'
 
 export function ResultsPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const result = location.state?.result as SessionResult | undefined
+
+  // Play tada sound when results page loads
+  useEffect(() => {
+    if (result) playSound('tada')
+  }, [result])
 
   if (!result) {
     navigate('/hub')

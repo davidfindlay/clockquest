@@ -5,6 +5,7 @@ import { MultipleChoice } from '../UI/MultipleChoice'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateChoices, generateHint } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { playSound } from '../../utils/sounds'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 import type { TierInfo } from '../../utils/tier-config'
@@ -186,6 +187,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
     const elapsed = Date.now() - questionStart
     setResponseTimes(prev => [...prev, elapsed])
     if (option === correctAnswer) {
+      playSound('correct')
       setCorrect(c => c + 1)
       setCurrentStreak(s => {
         const next = s + 1
@@ -193,6 +195,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
         return next
       })
     } else {
+      playSound('incorrect')
       setCurrentStreak(0)
     }
   }, [selectedChoice, questionStart, correctAnswer])
@@ -202,6 +205,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
     const elapsed = Date.now() - questionStart
     setResponseTimes(prev => [...prev, elapsed])
     if (isSetCorrect) {
+      playSound('correct')
       setCorrect(c => c + 1)
       setCurrentStreak(s => {
         const next = s + 1
@@ -209,6 +213,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
         return next
       })
     } else {
+      playSound('incorrect')
       setCurrentStreak(0)
     }
   }, [questionStart, isSetCorrect])

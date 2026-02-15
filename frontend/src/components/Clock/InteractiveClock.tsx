@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 import { timeToAngles, pointerToAngle, snapAngle, anglesToTime, getSnapDegrees, formatTime } from './clock-utils'
+import { playSound } from '../../utils/sounds'
 
 interface InteractiveClockProps {
   hours: number
@@ -18,6 +19,8 @@ export function InteractiveClock({
 }: InteractiveClockProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [dragging, setDragging] = useState<'hour' | 'minute' | null>(null)
+  const prevMinuteAngleRef = useRef<number | null>(null)
+  const prevHourAngleRef = useRef<number | null>(null)
   const { hourAngle, minuteAngle } = timeToAngles(hours, minutes)
   const cx = 100
   const cy = 100
@@ -38,7 +41,13 @@ export function InteractiveClock({
     e.preventDefault()
     ;(e.target as Element).setPointerCapture(e.pointerId)
     setDragging(hand)
-  }, [])
+    // Seed the previous angle refs so the first move can detect a notch change
+    if (hand === 'minute') {
+      prevMinuteAngleRef.current = snapAngle(minuteAngle, snapDeg)
+    } else {
+      prevHourAngleRef.current = snapAngle(hourAngle, 30)
+    }
+  }, [minuteAngle, hourAngle, snapDeg])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging) return
@@ -47,11 +56,21 @@ export function InteractiveClock({
 
     if (dragging === 'minute') {
       angle = snapAngle(angle, snapDeg)
+      // Play tick if we moved to a different notch
+      if (prevMinuteAngleRef.current !== null && angle !== prevMinuteAngleRef.current) {
+        playSound('tick')
+      }
+      prevMinuteAngleRef.current = angle
       const newTime = anglesToTime(hourAngle, angle)
       onTimeChange(hours, newTime.minutes)
     } else {
       // Hour hand: snap to 30 degrees
       angle = snapAngle(angle, 30)
+      // Play tock if we moved to a different notch
+      if (prevHourAngleRef.current !== null && angle !== prevHourAngleRef.current) {
+        playSound('tock')
+      }
+      prevHourAngleRef.current = angle
       const newTime = anglesToTime(angle, minuteAngle)
       onTimeChange(newTime.hours, minutes)
     }
@@ -59,6 +78,8 @@ export function InteractiveClock({
 
   const handlePointerUp = useCallback(() => {
     setDragging(null)
+    prevMinuteAngleRef.current = null
+    prevHourAngleRef.current = null
   }, [])
 
   const hourHandEnd = {

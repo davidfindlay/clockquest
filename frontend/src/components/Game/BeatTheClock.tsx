@@ -3,6 +3,7 @@ import { AnalogClock } from '../Clock/AnalogClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
 import { generateTime, generateChoices } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { playSound } from '../../utils/sounds'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
@@ -88,6 +89,7 @@ export function BeatTheClock({ difficulty, timeFormatMix, durationSeconds = 60, 
     setTotalQuestions(q => q + 1)
 
     if (option === question.correctAnswer) {
+      playSound('correct')
       setCorrect(c => c + 1)
       setCurrentStreak(s => {
         const next = s + 1
@@ -95,6 +97,7 @@ export function BeatTheClock({ difficulty, timeFormatMix, durationSeconds = 60, 
         return next
       })
     } else {
+      playSound('incorrect')
       setCurrentStreak(0)
     }
 

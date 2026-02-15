@@ -3,6 +3,7 @@ import { InteractiveClock } from '../Clock/InteractiveClock'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateHint } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { playSound } from '../../utils/sounds'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
@@ -66,6 +67,7 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
     const elapsed = Date.now() - questionStart
     setResponseTimes(prev => [...prev, elapsed])
     if (isCorrect) {
+      playSound('correct')
       setCorrect(c => c + 1)
       setCurrentStreak(s => {
         const next = s + 1
@@ -73,6 +75,7 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
         return next
       })
     } else {
+      playSound('incorrect')
       setCurrentStreak(0)
     }
   }, [questionStart, isCorrect])

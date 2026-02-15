@@ -5,6 +5,7 @@ import { Button } from '../UI/Button'
 import { generateTime, generateChoices, generateHint } from './question-gen'
 import type { ClockQuestion } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { playSound } from '../../utils/sounds'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 
@@ -55,6 +56,7 @@ export function ReadTheClock({ difficulty, timeFormatMix, totalQuestions = 10, o
     setResponseTimes(prev => [...prev, elapsed])
 
     if (option === question.correctAnswer) {
+      playSound('correct')
       setCorrect(c => c + 1)
       setCurrentStreak(s => {
         const next = s + 1
@@ -62,6 +64,7 @@ export function ReadTheClock({ difficulty, timeFormatMix, totalQuestions = 10, o
         return next
       })
     } else {
+      playSound('incorrect')
       setCurrentStreak(0)
     }
   }, [selected, questionStart, question.correctAnswer])

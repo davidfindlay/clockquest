@@ -9,6 +9,7 @@ import { useGame } from '../stores/gameStore'
 import { getTrialConfig, submitTrial } from '../api/trials'
 import { generateTime, generateChoices } from '../components/Game/question-gen'
 import { formatTimeAs, pickTimeFormat } from '../components/Clock/clock-utils'
+import { playSound } from '../utils/sounds'
 import type { TimeFormat } from '../components/Clock/clock-utils'
 import { getTierByIndex } from '../utils/tier-config'
 import type { TierTrialConfig, TierTrialResult, Difficulty } from '../types'
@@ -52,7 +53,10 @@ export function TrialPage() {
     if (selected || !question) return
     setSelected(option)
     if (option === question.correctAnswer) {
+      playSound('correct')
       setCorrect(c => c + 1)
+    } else {
+      playSound('incorrect')
     }
   }, [selected, question])
 
@@ -74,6 +78,7 @@ export function TrialPage() {
       setResult(trialResult)
       setPlayer(trialResult.player)
       setPhase('result')
+      playSound('tada')
       return
     }
 
