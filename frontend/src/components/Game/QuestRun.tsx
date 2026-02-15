@@ -289,8 +289,8 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
       {/* READ mode */}
       {q.mode === 'read' && (
         <>
-          <AnalogClock hours={q.hours} minutes={q.minutes} size={260} />
           <h2 className="text-2xl font-bold">What time is it?</h2>
+          <AnalogClock hours={q.hours} minutes={q.minutes} size={260} />
 
           {showHint && (
             <div className="text-amber-400 text-lg">{hintText}</div>
@@ -329,7 +329,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
             hours={playerHours}
             minutes={playerMinutes}
             onTimeChange={handleTimeChange}
-            difficulty={q.difficulty}
+            minuteSnapDegrees={tierInfo.minuteSnapDegrees}
             size={280}
           />
 

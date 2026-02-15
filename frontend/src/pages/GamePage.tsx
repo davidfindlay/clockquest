@@ -104,7 +104,7 @@ export function GamePage() {
         <ReadTheClock playerId={player.id} difficulty={difficulty} timeFormatMix={tierInfo.timeFormatMix} onComplete={handleComplete} />
       )}
       {mode === 'set' && (
-        <SetTheClock playerId={player.id} difficulty={difficulty} timeFormatMix={tierInfo.timeFormatMix} onComplete={handleComplete} />
+        <SetTheClock playerId={player.id} difficulty={difficulty} timeFormatMix={tierInfo.timeFormatMix} minuteSnapDegrees={tierInfo.minuteSnapDegrees} onComplete={handleComplete} />
       )}
     </div>
   )

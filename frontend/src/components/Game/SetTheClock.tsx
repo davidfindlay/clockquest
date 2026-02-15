@@ -11,6 +11,7 @@ interface SetTheClockProps {
   playerId: number
   difficulty: Difficulty
   timeFormatMix?: Record<string, number>
+  minuteSnapDegrees?: number
   totalQuestions?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
@@ -35,7 +36,7 @@ function initState(difficulty: Difficulty, mix: Record<string, number>) {
   }
 }
 
-export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, onComplete }: SetTheClockProps) {
+export function SetTheClock({ difficulty, timeFormatMix, minuteSnapDegrees = 6, totalQuestions = 10, onComplete }: SetTheClockProps) {
   const mix = timeFormatMix ?? { digital: 1 }
 
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -148,7 +149,7 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
         hours={playerHours}
         minutes={playerMinutes}
         onTimeChange={handleTimeChange}
-        difficulty={difficulty}
+        minuteSnapDegrees={minuteSnapDegrees}
         size={280}
       />
 

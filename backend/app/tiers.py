@@ -24,6 +24,7 @@ class TierDefinition:
     trial: dict | None = field(default=None, repr=False)  # trial to unlock this tier
     quest_run_mix: dict[str, float] = field(default_factory=dict, repr=False)
     time_format_mix: dict[str, float] = field(default_factory=dict, repr=False)
+    minute_snap_degrees: int = 30  # minute hand notch size in set-the-clock (30=5min, 6=1min)
 
 
 TIERS: list[TierDefinition] = [
@@ -37,6 +38,7 @@ TIERS: list[TierDefinition] = [
         trial=None,   # no trial needed for starting tier
         quest_run_mix={"hour": 1.0},
         time_format_mix={"digital": 0.7, "digital_ampm": 0.3},
+        minute_snap_degrees=180,  # only :00 and :30
     ),
     TierDefinition(
         index=1,
@@ -54,6 +56,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"hour": 0.3, "half": 0.7},
         time_format_mix={"digital": 0.4, "digital_ampm": 0.3, "words_past_to": 0.3},
+        minute_snap_degrees=90,  # :00, :15, :30, :45
     ),
     TierDefinition(
         index=2,
@@ -71,6 +74,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"half": 0.2, "quarter": 0.8},
         time_format_mix={"digital": 0.3, "digital_ampm": 0.2, "words_past_to": 0.5},
+        minute_snap_degrees=90,  # :00, :15, :30, :45
     ),
     TierDefinition(
         index=3,
@@ -88,6 +92,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"quarter": 0.5, "five_min": 0.5},
         time_format_mix={"digital": 0.1, "digital_ampm": 0.2, "words_past_to": 0.7},
+        minute_snap_degrees=30,  # every 5 minutes
     ),
     TierDefinition(
         index=4,
@@ -105,6 +110,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"quarter": 0.2, "five_min": 0.8},
         time_format_mix={"digital": 0.2, "digital_ampm": 0.2, "words_past_to": 0.6},
+        minute_snap_degrees=30,  # every 5 minutes
     ),
     TierDefinition(
         index=5,
@@ -122,6 +128,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"five_min": 0.5, "one_min": 0.5},
         time_format_mix={"digital": 0.2, "words_past_to": 0.5, "full_words": 0.3},
+        minute_snap_degrees=6,  # every 1 minute
     ),
     TierDefinition(
         index=6,
@@ -139,6 +146,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"five_min": 0.2, "one_min": 0.8},
         time_format_mix={"digital": 0.1, "words_past_to": 0.4, "full_words": 0.5},
+        minute_snap_degrees=6,  # every 1 minute
     ),
     TierDefinition(
         index=7,
@@ -156,6 +164,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"five_min": 0.1, "one_min": 0.9},
         time_format_mix={"words_past_to": 0.3, "full_words": 0.7},
+        minute_snap_degrees=6,  # every 1 minute
     ),
     TierDefinition(
         index=8,
@@ -173,6 +182,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"one_min": 0.7, "interval": 0.3},
         time_format_mix={"words_past_to": 0.2, "full_words": 0.8},
+        minute_snap_degrees=6,  # every 1 minute
     ),
     TierDefinition(
         index=9,
@@ -190,6 +200,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"one_min": 0.5, "interval": 0.5},
         time_format_mix={"digital_ampm": 0.1, "full_words": 0.9},
+        minute_snap_degrees=6,  # every 1 minute
     ),
     TierDefinition(
         index=10,
@@ -207,6 +218,7 @@ TIERS: list[TierDefinition] = [
         },
         quest_run_mix={"one_min": 0.3, "interval": 0.7},
         time_format_mix={"full_words": 1.0},
+        minute_snap_degrees=6,  # every 1 minute
     ),
 ]
 
@@ -299,6 +311,7 @@ def tier_list_for_api() -> list[dict]:
             "skill": t.skill,
             "quest_run_mix": t.quest_run_mix,
             "time_format_mix": t.time_format_mix,
+            "minute_snap_degrees": t.minute_snap_degrees,
         }
         for t in TIERS
     ]
