@@ -60,9 +60,24 @@ export function InteractiveClock({
       if (prevMinuteAngleRef.current !== null && angle !== prevMinuteAngleRef.current) {
         playSound('tick')
       }
+      const prevAngle = prevMinuteAngleRef.current
       prevMinuteAngleRef.current = angle
       const newTime = anglesToTime(hourAngle, angle)
-      onTimeChange(hours, newTime.minutes)
+
+      // Detect when minute hand crosses 12 (0°/360° boundary) and adjust hour
+      let newHours = hours
+      if (prevAngle !== null) {
+        const delta = angle - prevAngle
+        // Crossed 12 clockwise: e.g. 354 → 6 (delta ≈ -348)
+        if (delta < -180) {
+          newHours = hours === 12 ? 1 : hours + 1
+        }
+        // Crossed 12 counter-clockwise: e.g. 6 → 354 (delta ≈ +348)
+        else if (delta > 180) {
+          newHours = hours === 1 ? 12 : hours - 1
+        }
+      }
+      onTimeChange(newHours, newTime.minutes)
     } else {
       // Hour hand: snap to 30 degrees
       angle = snapAngle(angle, 30)

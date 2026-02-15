@@ -24,9 +24,11 @@ export function anglesToTime(hourAngle: number, minuteAngle: number): { hours: n
 
 /**
  * Snap angle to nearest multiple of snapDegrees.
+ * Result is normalised to [0, 360) so 360° becomes 0°.
  */
 export function snapAngle(angle: number, snapDegrees: number): number {
-  return Math.round(angle / snapDegrees) * snapDegrees
+  const snapped = Math.round(angle / snapDegrees) * snapDegrees
+  return snapped % 360
 }
 
 /**
