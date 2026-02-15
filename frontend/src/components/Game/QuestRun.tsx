@@ -226,11 +226,8 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
     if (!submitted) {
       setPlayerHours(h)
       setPlayerMinutes(m)
-      if (advancedSetHintMode && q.mode === 'set' && showHint) {
-        setShowHint(false)
-      }
     }
-  }, [submitted, advancedSetHintMode, q.mode, showHint])
+  }, [submitted])
 
   const handleNext = useCallback(() => {
     const nextIdx = questionIndex + 1
@@ -328,19 +325,10 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
         <>
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-1">Set the clock to:</h2>
-            {(!advancedSetHintMode || showHint) && (
-              <div className="text-4xl text-amber-400 font-bold">
-                {q.display}
-              </div>
-            )}
-            {advancedSetHintMode && !showHint && (
-              <div className="text-slate-400">Tap Hint to reveal the target time</div>
-            )}
+            <div className="text-4xl text-amber-400 font-bold">
+              {q.display}
+            </div>
           </div>
-
-          {showHint && (
-            <div className="text-amber-400 text-2xl font-bold">{hintText}</div>
-          )}
 
           <InteractiveClock
             hours={playerHours}
@@ -348,12 +336,9 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
             onTimeChange={handleTimeChange}
             difficulty={q.difficulty}
             size={280}
-            showDigitalReadout={showHint}
+            showDigitalReadout={!advancedSetHintMode || showHint}
           />
 
-          {advancedSetHintMode && hintPenalty > 0 && (
-            <div className="text-sm text-rose-300">Hint penalties: -{hintPenalty} score</div>
-          )}
 
           {submitted && (
             <div className={`text-xl font-bold ${isSetCorrect ? 'text-green-400' : 'text-red-400'}`}>

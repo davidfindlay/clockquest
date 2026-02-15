@@ -69,11 +69,8 @@ export function SetTheClock({
     if (!submitted) {
       setPlayerHours(h)
       setPlayerMinutes(m)
-      if (advancedHintMode && showHint) {
-        setShowHint(false)
-      }
     }
-  }, [submitted, advancedHintMode, showHint])
+  }, [submitted])
 
   const handleSubmit = useCallback(() => {
     setSubmitted(true)
@@ -145,20 +142,10 @@ export function SetTheClock({
       {/* Target time */}
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-1">Set the clock to:</h2>
-        {(!advancedHintMode || showHint) && (
-          <div className="text-4xl text-amber-400 font-bold">
-            {target.display}
-          </div>
-        )}
-        {advancedHintMode && !showHint && (
-          <div className="text-slate-400">Tap Hint to reveal the target time</div>
-        )}
+        <div className="text-4xl text-amber-400 font-bold">
+          {target.display}
+        </div>
       </div>
-
-      {/* Hint */}
-      {showHint && (
-        <div className="text-amber-400 text-2xl font-bold">{target.display}</div>
-      )}
 
       {/* Interactive clock */}
       <InteractiveClock
@@ -167,12 +154,9 @@ export function SetTheClock({
         onTimeChange={handleTimeChange}
         difficulty={difficulty}
         size={280}
-        showDigitalReadout={showHint}
+        showDigitalReadout={!advancedHintMode || showHint}
       />
 
-      {advancedHintMode && hintPenalty > 0 && (
-        <div className="text-sm text-rose-300">Hint penalties: -{hintPenalty} score</div>
-      )}
 
       {/* Feedback */}
       {submitted && (
