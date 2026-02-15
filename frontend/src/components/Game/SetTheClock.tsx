@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { InteractiveClock } from '../Clock/InteractiveClock'
 import { Button } from '../UI/Button'
-import { generateTime, generateStartTime, generateHint } from './question-gen'
+import { generateTime, generateStartTime } from './question-gen'
 import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
 import type { TimeFormat } from '../Clock/clock-utils'
@@ -12,6 +12,8 @@ interface SetTheClockProps {
   difficulty: Difficulty
   timeFormatMix?: Record<string, number>
   totalQuestions?: number
+  advancedHintMode?: boolean
+  advancedHintPenalty?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
 
@@ -35,7 +37,14 @@ function initState(difficulty: Difficulty, mix: Record<string, number>) {
   }
 }
 
-export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, onComplete }: SetTheClockProps) {
+export function SetTheClock({
+  difficulty,
+  timeFormatMix,
+  totalQuestions = 10,
+  advancedHintMode = false,
+  advancedHintPenalty = 2,
+  onComplete,
+}: SetTheClockProps) {
   const mix = timeFormatMix ?? { digital: 1 }
 
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -51,16 +60,20 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
   const [showHint, setShowHint] = useState(false)
-  const [hintText, setHintText] = useState('')
+  const [hintPenalty, setHintPenalty] = useState(0)
 
   const isCorrect = playerHours === target.hours && Math.abs(playerMinutes - target.minutes) <= 2
+  const effectiveCorrect = Math.max(0, correct - hintPenalty)
 
   const handleTimeChange = useCallback((h: number, m: number) => {
     if (!submitted) {
       setPlayerHours(h)
       setPlayerMinutes(m)
+      if (advancedHintMode && showHint) {
+        setShowHint(false)
+      }
     }
-  }, [submitted])
+  }, [submitted, advancedHintMode, showHint])
 
   const handleSubmit = useCallback(() => {
     setSubmitted(true)
@@ -90,7 +103,7 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
         mode: 'set',
         difficulty,
         questions: totalQuestions,
-        correct,
+        correct: effectiveCorrect,
         hints_used: hintsUsed,
         max_streak: maxStreak,
         avg_response_ms: avgMs,
@@ -110,16 +123,15 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
     })
     setSubmitted(false)
     setShowHint(false)
-    setHintText('')
     setQuestionStart(Date.now())
-  }, [questionIndex, totalQuestions, difficulty, correct, hintsUsed, responseTimes, onComplete])
+  }, [questionIndex, totalQuestions, difficulty, effectiveCorrect, hintsUsed, responseTimes, onComplete])
 
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Progress */}
       <div className="flex items-center gap-3 text-slate-400">
         <span className="text-lg font-bold">Question {questionIndex + 1} / {totalQuestions}</span>
-        <span className="text-green-400">{correct} correct</span>
+        <span className="text-green-400">{effectiveCorrect} score</span>
       </div>
 
       {/* Progress bar */}
@@ -138,11 +150,6 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
         </div>
       </div>
 
-      {/* Hint */}
-      {showHint && (
-        <div className="text-amber-400 text-lg">{hintText}</div>
-      )}
-
       {/* Interactive clock */}
       <InteractiveClock
         hours={playerHours}
@@ -150,7 +157,9 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
         onTimeChange={handleTimeChange}
         difficulty={difficulty}
         size={280}
+        showDigitalReadout={showHint}
       />
+
 
       {/* Feedback */}
       {submitted && (
@@ -163,7 +172,18 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
       <div className="flex gap-3">
         {!submitted && (
           <>
-            <Button variant="ghost" size="sm" onClick={() => { setShowHint(true); setHintText(generateHint(target.hours, target.minutes)); setHintsUsed(h => h + 1) }} disabled={showHint}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowHint(true)
+                setHintsUsed(h => h + 1)
+                if (advancedHintMode) {
+                  setHintPenalty(p => p + advancedHintPenalty)
+                }
+              }}
+              disabled={showHint}
+            >
               Hint
             </Button>
             <Button onClick={handleSubmit}>Check</Button>
