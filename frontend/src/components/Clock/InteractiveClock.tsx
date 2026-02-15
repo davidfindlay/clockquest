@@ -8,6 +8,7 @@ interface InteractiveClockProps {
   onTimeChange: (hours: number, minutes: number) => void
   difficulty?: string
   size?: number
+  showDigitalReadout?: boolean
 }
 
 export function InteractiveClock({
@@ -16,6 +17,7 @@ export function InteractiveClock({
   onTimeChange,
   difficulty = 'one_min',
   size = 280,
+  showDigitalReadout = true,
 }: InteractiveClockProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [dragging, setDragging] = useState<'hour' | 'minute' | null>(null)
@@ -213,9 +215,11 @@ export function InteractiveClock({
         <circle cx={cx} cy={cy} r={5} fill={dragging ? '#60a5fa' : '#f59e0b'} />
       </svg>
 
-      <div className="text-3xl font-mono text-amber-400 font-bold">
-        {formatTime(hours, minutes)}
-      </div>
+      {showDigitalReadout && (
+        <div className="text-3xl font-mono text-amber-400 font-bold">
+          {formatTime(hours, minutes)}
+        </div>
+      )}
       <div className="text-sm text-slate-500">Drag the hands to set the time</div>
     </div>
   )
