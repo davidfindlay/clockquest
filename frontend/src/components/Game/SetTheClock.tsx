@@ -69,8 +69,11 @@ export function SetTheClock({
     if (!submitted) {
       setPlayerHours(h)
       setPlayerMinutes(m)
+      if (advancedHintMode && showHint) {
+        setShowHint(false)
+      }
     }
-  }, [submitted])
+  }, [submitted, advancedHintMode, showHint])
 
   const handleSubmit = useCallback(() => {
     setSubmitted(true)
@@ -154,7 +157,7 @@ export function SetTheClock({
         onTimeChange={handleTimeChange}
         difficulty={difficulty}
         size={280}
-        showDigitalReadout={!advancedHintMode || showHint}
+        showDigitalReadout={showHint}
       />
 
 

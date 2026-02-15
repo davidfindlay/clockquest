@@ -226,8 +226,11 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
     if (!submitted) {
       setPlayerHours(h)
       setPlayerMinutes(m)
+      if (advancedSetHintMode && q.mode === 'set' && showHint) {
+        setShowHint(false)
+      }
     }
-  }, [submitted])
+  }, [submitted, advancedSetHintMode, q.mode, showHint])
 
   const handleNext = useCallback(() => {
     const nextIdx = questionIndex + 1
@@ -336,7 +339,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
             onTimeChange={handleTimeChange}
             difficulty={q.difficulty}
             size={280}
-            showDigitalReadout={!advancedSetHintMode || showHint}
+            showDigitalReadout={showHint}
           />
 
 
