@@ -13,6 +13,8 @@ import type { TierInfo } from '../../utils/tier-config'
 interface QuestRunProps {
   tierInfo: TierInfo
   totalQuestions?: number
+  advancedSetHintMode?: boolean
+  advancedSetHintPenalty?: number
   onComplete: (result: Omit<SessionCreate, 'player_id'>) => void
 }
 
@@ -154,7 +156,7 @@ function getPrimaryDifficulty(mix: Record<string, number>): Difficulty {
   return best
 }
 
-export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRunProps) {
+export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = false, advancedSetHintPenalty = 2, onComplete }: QuestRunProps) {
   const [questions] = useState<QuestQuestion[]>(() => buildQuestionPlan(tierInfo.questRunMix, totalQuestions, tierInfo.timeFormatMix))
   const [questionIndex, setQuestionIndex] = useState(0)
   const [correct, setCorrect] = useState(0)
@@ -174,12 +176,14 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
 
   const [showHint, setShowHint] = useState(false)
   const [hintText, setHintText] = useState('')
+  const [hintPenalty, setHintPenalty] = useState(0)
 
   const q = questions[questionIndex]
   const correctAnswer = q.display
   const isSetCorrect = playerHours === q.hours && Math.abs(playerMinutes - q.minutes) <= 2
 
   const answered = q.mode === 'read' ? selectedChoice !== null : submitted
+  const effectiveCorrect = Math.max(0, correct - hintPenalty)
 
   const handleReadSelect = useCallback((option: string) => {
     if (selectedChoice) return
@@ -222,8 +226,11 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
     if (!submitted) {
       setPlayerHours(h)
       setPlayerMinutes(m)
+      if (advancedSetHintMode && q.mode === 'set' && showHint) {
+        setShowHint(false)
+      }
     }
-  }, [submitted])
+  }, [submitted, advancedSetHintMode, q.mode, showHint])
 
   const handleNext = useCallback(() => {
     const nextIdx = questionIndex + 1
@@ -236,7 +243,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
         mode: 'quest',
         difficulty: getPrimaryDifficulty(tierInfo.questRunMix),
         questions: totalQuestions,
-        correct,
+        correct: effectiveCorrect,
         hints_used: hintsUsed,
         max_streak: maxStreak,
         avg_response_ms: avgMs,
@@ -253,20 +260,25 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
     setShowHint(false)
     setHintText('')
     setQuestionStart(Date.now())
-  }, [questionIndex, totalQuestions, correct, hintsUsed, responseTimes, onComplete, tierInfo.questRunMix, questions])
+  }, [questionIndex, totalQuestions, effectiveCorrect, hintsUsed, responseTimes, onComplete, tierInfo.questRunMix, questions])
 
   const handleHint = useCallback(() => {
     setShowHint(true)
-    setHintText(generateHint(q.hours, q.minutes))
+    if (q.mode === 'set' && advancedSetHintMode) {
+      setHintText(q.display)
+      setHintPenalty(p => p + advancedSetHintPenalty)
+    } else {
+      setHintText(generateHint(q.hours, q.minutes))
+    }
     setHintsUsed(h => h + 1)
-  }, [q.hours, q.minutes])
+  }, [q.mode, q.display, q.hours, q.minutes, advancedSetHintMode, advancedSetHintPenalty])
 
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Progress */}
       <div className="flex items-center gap-3 text-slate-400">
         <span className="text-lg font-bold">Question {questionIndex + 1} / {totalQuestions}</span>
-        <span className="text-green-400">{correct} correct</span>
+        <span className="text-green-400">{effectiveCorrect} score</span>
       </div>
 
       {/* Progress bar */}
@@ -321,17 +333,15 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
             </div>
           </div>
 
-          {showHint && (
-            <div className="text-amber-400 text-lg">{hintText}</div>
-          )}
-
           <InteractiveClock
             hours={playerHours}
             minutes={playerMinutes}
             onTimeChange={handleTimeChange}
             minuteSnapDegrees={tierInfo.minuteSnapDegrees}
             size={280}
+            showDigitalReadout={showHint}
           />
+
 
           {submitted && (
             <div className={`text-xl font-bold ${isSetCorrect ? 'text-green-400' : 'text-red-400'}`}>
