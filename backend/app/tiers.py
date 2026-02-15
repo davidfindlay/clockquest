@@ -24,7 +24,11 @@ class TierDefinition:
     trial: dict | None = field(default=None, repr=False)  # trial to unlock this tier
     quest_run_mix: dict[str, float] = field(default_factory=dict, repr=False)
     time_format_mix: dict[str, float] = field(default_factory=dict, repr=False)
+    # Percent progress through this tier (0-100) at which Set The Clock switches
+    # to advanced hint mode. Example: 70 means advanced mode starts once the
+    # player reaches >=70% progress within their current tier.
     set_clock_advanced_hint_progress_threshold: int = 70
+    # Score penalty applied each time hint is used while in advanced hint mode.
     set_clock_advanced_hint_penalty: int = 2
 
 
@@ -312,7 +316,11 @@ def validate_trial(tier_index: int, correct: int, hints_used: int, time_ms: int 
 
 
 def tier_list_for_api() -> list[dict]:
-    """Return all tiers as a list of dicts suitable for JSON API response."""
+    """Return all tiers as a list of dicts suitable for JSON API response.
+
+    set_clock_advanced_hint_progress_threshold is a per-tier percentage (0-100)
+    of progress within that tier where Set The Clock enters advanced hint mode.
+    """
     return [
         {
             "index": t.index,
