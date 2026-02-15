@@ -4,7 +4,7 @@ import { InteractiveClock } from '../Clock/InteractiveClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime, generateChoices, generateHint } from './question-gen'
-import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat, getSnapDegrees } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
 import { SoundToggle } from '../UI/SoundToggle'
 import exitIcon from '../../assets/exit_quest.svg'
@@ -367,7 +367,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, advancedSetHintMode = 
             hours={playerHours}
             minutes={playerMinutes}
             onTimeChange={handleTimeChange}
-            minuteSnapDegrees={tierInfo.minuteSnapDegrees}
+            minuteSnapDegrees={getSnapDegrees(q.difficulty)}
             size={280}
             showDigitalReadout={showHint}
           />

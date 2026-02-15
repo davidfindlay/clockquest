@@ -7,6 +7,9 @@ interface QuestCardProps {
 
 export function QuestCard({ quest }: QuestCardProps) {
   const progressPct = quest.target > 0 ? Math.min(100, (quest.progress / quest.target) * 100) : 0
+  const label = quest.quest_type === 'daily_streak'
+    ? 'STREAK'
+    : 'CHALLENGE'
 
   return (
     <Card className={`${quest.completed ? 'border-green-500/50 bg-green-900/20' : ''}`}>
@@ -14,7 +17,7 @@ export function QuestCard({ quest }: QuestCardProps) {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs uppercase tracking-wider text-slate-500 font-bold">
-              {quest.quest_type.replace('_', ' ')}
+              {label}
             </span>
             {quest.completed && <span className="text-green-400 text-xs font-bold">COMPLETE</span>}
           </div>

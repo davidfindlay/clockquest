@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { InteractiveClock } from '../Clock/InteractiveClock'
 import { Button } from '../UI/Button'
 import { generateTime, generateStartTime } from './question-gen'
-import { formatTimeAs, pickTimeFormat } from '../Clock/clock-utils'
+import { formatTimeAs, pickTimeFormat, getSnapDegrees } from '../Clock/clock-utils'
 import { playSound } from '../../utils/sounds'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
@@ -155,7 +155,7 @@ export function SetTheClock({
         hours={playerHours}
         minutes={playerMinutes}
         onTimeChange={handleTimeChange}
-        difficulty={difficulty}
+        minuteSnapDegrees={getSnapDegrees(difficulty)}
         size={280}
         showDigitalReadout={showHint}
       />

@@ -84,9 +84,9 @@ export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeader
         </Button>
       </div>
 
-      {/* Quests */}
+      {/* Challenges */}
       <div>
-        <h3 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Quests</h3>
+        <h3 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Challenges</h3>
         <div className="flex flex-col gap-3">
           {quests.map(quest => (
             <QuestCard key={quest.id} quest={quest} />
