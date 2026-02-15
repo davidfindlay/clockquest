@@ -43,9 +43,17 @@ export function GamePage() {
   // Quest mode — skip pickers, render QuestRun directly
   if (mode === 'quest') {
     const tierInfo = getTierByIndex(player.current_tier)
+    const tierRange = Math.max(1, tierInfo.maxPower - tierInfo.minPower)
+    const tierProgressPct = ((player.clock_power - tierInfo.minPower) / tierRange) * 100
+    const advancedSetHintMode = tierProgressPct >= tierInfo.setClockAdvancedHintProgressThreshold
     return (
       <div className="min-h-full p-6 pt-8 flex flex-col items-center">
-        <QuestRun tierInfo={tierInfo} onComplete={handleComplete} />
+        <QuestRun
+          tierInfo={tierInfo}
+          advancedSetHintMode={advancedSetHintMode}
+          advancedSetHintPenalty={tierInfo.setClockAdvancedHintPenalty}
+          onComplete={handleComplete}
+        />
       </div>
     )
   }
