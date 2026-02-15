@@ -10,6 +10,7 @@ import { getTrialConfig, submitTrial } from '../api/trials'
 import { generateTime, generateChoices } from '../components/Game/question-gen'
 import { formatTimeAs, pickTimeFormat } from '../components/Clock/clock-utils'
 import { playSound } from '../utils/sounds'
+import { SoundToggle } from '../components/UI/SoundToggle'
 import type { TimeFormat } from '../components/Clock/clock-utils'
 import { getTierByIndex } from '../utils/tier-config'
 import type { TierTrialConfig, TierTrialResult, Difficulty } from '../types'
@@ -119,6 +120,9 @@ export function TrialPage() {
   if (phase === 'playing' && question) {
     return (
       <div className="min-h-full p-6 pt-8 flex flex-col items-center gap-4">
+        <div className="flex w-full justify-end">
+          <SoundToggle />
+        </div>
         <div className="text-slate-400 font-bold">
           {config.tier_name} Trial — {questionIndex + 1}/{config.questions}
         </div>

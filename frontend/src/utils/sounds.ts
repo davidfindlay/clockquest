@@ -14,6 +14,30 @@ import tockSrc from '../assets/tock.mp3'
 
 type SoundName = 'correct' | 'incorrect' | 'tada' | 'tick' | 'tock'
 
+const STORAGE_KEY = 'clockquest_sound_enabled'
+
+let soundEnabled = (() => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored === null ? true : stored === 'true'
+  } catch {
+    return true
+  }
+})()
+
+export function isSoundEnabled(): boolean {
+  return soundEnabled
+}
+
+export function setSoundEnabled(enabled: boolean): void {
+  soundEnabled = enabled
+  try {
+    localStorage.setItem(STORAGE_KEY, String(enabled))
+  } catch {
+    // localStorage unavailable — state still works in-memory
+  }
+}
+
 const SOURCES: Record<SoundName, string> = {
   correct: correctSrc,
   incorrect: incorrectSrc,
@@ -51,6 +75,7 @@ export function preloadSounds(): void {
  * Uses a round-robin pool so rapid successive plays don't cut each other off.
  */
 export function playSound(name: SoundName): void {
+  if (!soundEnabled) return
   const pool = pools[name]
   if (!pool) return
 

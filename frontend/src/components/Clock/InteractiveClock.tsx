@@ -1,12 +1,12 @@
 import { useRef, useState, useCallback } from 'react'
-import { timeToAngles, pointerToAngle, snapAngle, anglesToTime, getSnapDegrees, formatTime } from './clock-utils'
+import { timeToAngles, pointerToAngle, snapAngle, anglesToTime, formatTime } from './clock-utils'
 import { playSound } from '../../utils/sounds'
 
 interface InteractiveClockProps {
   hours: number
   minutes: number
   onTimeChange: (hours: number, minutes: number) => void
-  difficulty?: string
+  minuteSnapDegrees?: number
   size?: number
   showDigitalReadout?: boolean
 }
@@ -15,7 +15,7 @@ export function InteractiveClock({
   hours,
   minutes,
   onTimeChange,
-  difficulty = 'one_min',
+  minuteSnapDegrees = 6,
   size = 280,
   showDigitalReadout = true,
 }: InteractiveClockProps) {
@@ -26,7 +26,7 @@ export function InteractiveClock({
   const { hourAngle, minuteAngle } = timeToAngles(hours, minutes)
   const cx = 100
   const cy = 100
-  const snapDeg = getSnapDegrees(difficulty)
+  const snapDeg = minuteSnapDegrees
 
   const getSVGPoint = useCallback((e: React.PointerEvent) => {
     const svg = svgRef.current!
