@@ -87,7 +87,7 @@ def test_player_briefing():
     data = r.json()
     assert data["tier_name"] == "Wood"
     assert data["player"]["clock_power"] == 0
-    assert len(data["quests"]) > 0
+    assert len(data["challenges"]) > 0
 
 
 def test_trial_config():

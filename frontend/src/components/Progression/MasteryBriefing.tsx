@@ -1,7 +1,7 @@
 import type { PlayerBriefing } from '../../types'
 import { TierBadge } from './TierBadge'
 import { TierProgress } from './TierProgress'
-import { QuestCard } from './QuestCard'
+import { ChallengeCard } from './ChallengeCard'
 import { Button } from '../UI/Button'
 import { getTierByIndex } from '../../utils/tier-config'
 
@@ -14,7 +14,7 @@ interface MasteryBriefingProps {
 }
 
 export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeaderboard, onSwitchPlayer }: MasteryBriefingProps) {
-  const { player, next_tier_name, next_tier_threshold, mastered_skills, quests } = briefing
+  const { player, next_tier_name, next_tier_threshold, mastered_skills, challenges } = briefing
   const trialReady = next_tier_threshold !== null && player.clock_power >= next_tier_threshold
 
   return (
@@ -88,8 +88,8 @@ export function MasteryBriefing({ briefing, onStartQuest, onStartTrial, onLeader
       <div>
         <h3 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Challenges</h3>
         <div className="flex flex-col gap-3">
-          {quests.map(quest => (
-            <QuestCard key={quest.id} quest={quest} />
+          {challenges.map(challenge => (
+            <ChallengeCard key={challenge.id} challenge={challenge} />
           ))}
         </div>
       </div>

@@ -25,7 +25,7 @@ export interface PlayerBriefing {
   next_tier_threshold: number | null
   tier_progress_pct: number
   mastered_skills: string[]
-  quests: Quest[]
+  challenges: Challenge[]
 }
 
 // --- Session ---
@@ -63,7 +63,7 @@ export interface SessionResult {
   new_clock_power: number
   new_tier: number
   tier_up: boolean
-  quest_updates: Quest[]
+  challenge_updates: Challenge[]
 }
 
 // --- Tier Trial ---
@@ -105,10 +105,10 @@ export interface TierTrialResult {
 }
 
 // --- Quest ---
-export interface Quest {
+export interface Challenge {
   id: number
   player_id: number
-  quest_type: string
+  challenge_type: string
   description: string
   target: number
   progress: number

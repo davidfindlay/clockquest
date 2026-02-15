@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Player, World
-from ..schemas import PlayerCreate, PlayerResponse, PlayerBriefing, QuestResponse
+from ..schemas import PlayerCreate, PlayerResponse, PlayerBriefing, ChallengeResponse
 from ..tiers import get_tier_name, get_tier_color, get_mastered_skills, get_tier
 from ..quests import generate_quests
 
@@ -54,13 +54,13 @@ def get_briefing(player_id: int, db: Session = Depends(get_db)):
     tier_range = tier_ceiling - tier_floor
     tier_progress_pct = (progress_in_tier / tier_range * 100) if tier_range > 0 else 100.0
 
-    # Generate/get quests
-    quests = generate_quests(db, player)
-    quest_responses = [
-        QuestResponse(
+    # Generate/get challenges
+    challenges = generate_quests(db, player)
+    challenge_responses = [
+        ChallengeResponse(
             id=q.id,
             player_id=q.player_id,
-            quest_type=q.quest_type,
+            challenge_type=q.quest_type,
             description=q.description,
             target=q.target,
             progress=q.progress,
@@ -68,7 +68,7 @@ def get_briefing(player_id: int, db: Session = Depends(get_db)):
             mode=q.mode,
             difficulty=q.difficulty,
         )
-        for q in quests
+        for q in challenges
     ]
 
     return PlayerBriefing(
@@ -79,7 +79,7 @@ def get_briefing(player_id: int, db: Session = Depends(get_db)):
         next_tier_threshold=get_tier(next_tier).min_power if next_tier is not None else None,
         tier_progress_pct=round(tier_progress_pct, 1),
         mastered_skills=get_mastered_skills(current_tier),
-        quests=quest_responses,
+        challenges=challenge_responses,
     )
 
 
