@@ -43,6 +43,7 @@ class Session(Base):
     questions = Column(Integer, nullable=False)
     correct = Column(Integer, nullable=False)
     hints_used = Column(Integer, default=0)
+    max_streak = Column(Integer, default=0)
     avg_response_ms = Column(Integer, nullable=True)
     speedrun_score = Column(Integer, nullable=True)
     points_earned = Column(Float, default=0.0)

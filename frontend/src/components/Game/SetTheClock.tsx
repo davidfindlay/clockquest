@@ -45,6 +45,8 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
   const [submitted, setSubmitted] = useState(false)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
+  const [_currentStreak, setCurrentStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
   const [showHint, setShowHint] = useState(false)
@@ -65,6 +67,13 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
     setResponseTimes(prev => [...prev, elapsed])
     if (isCorrect) {
       setCorrect(c => c + 1)
+      setCurrentStreak(s => {
+        const next = s + 1
+        setMaxStreak(m => Math.max(m, next))
+        return next
+      })
+    } else {
+      setCurrentStreak(0)
     }
   }, [questionStart, isCorrect])
 
@@ -80,6 +89,7 @@ export function SetTheClock({ difficulty, timeFormatMix, totalQuestions = 10, on
         questions: totalQuestions,
         correct,
         hints_used: hintsUsed,
+        max_streak: maxStreak,
         avg_response_ms: avgMs,
       })
       return

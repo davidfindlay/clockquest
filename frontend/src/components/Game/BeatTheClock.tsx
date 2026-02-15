@@ -39,6 +39,8 @@ export function BeatTheClock({ difficulty, timeFormatMix, durationSeconds = 60, 
   const [selected, setSelected] = useState<string | null>(null)
   const [totalQuestions, setTotalQuestions] = useState(0)
   const [correct, setCorrect] = useState(0)
+  const [_currentStreak, setCurrentStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
   const [gameOver, setGameOver] = useState(false)
@@ -71,6 +73,7 @@ export function BeatTheClock({ difficulty, timeFormatMix, durationSeconds = 60, 
         questions: totalQuestions,
         correct,
         hints_used: 0,
+        max_streak: maxStreak,
         avg_response_ms: avgMs,
         speedrun_score: correct,
       })
@@ -86,6 +89,13 @@ export function BeatTheClock({ difficulty, timeFormatMix, durationSeconds = 60, 
 
     if (option === question.correctAnswer) {
       setCorrect(c => c + 1)
+      setCurrentStreak(s => {
+        const next = s + 1
+        setMaxStreak(m => Math.max(m, next))
+        return next
+      })
+    } else {
+      setCurrentStreak(0)
     }
 
     // Auto advance after brief delay

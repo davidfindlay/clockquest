@@ -59,6 +59,7 @@ class SessionCreate(BaseModel):
     questions: int = Field(..., ge=1)
     correct: int = Field(..., ge=0)
     hints_used: int = Field(default=0, ge=0)
+    max_streak: int = Field(default=0, ge=0)
     avg_response_ms: int | None = None
     speedrun_score: int | None = None
 
@@ -71,6 +72,7 @@ class SessionResponse(BaseModel):
     questions: int
     correct: int
     hints_used: int
+    max_streak: int
     avg_response_ms: int | None
     speedrun_score: int | None
     points_earned: float

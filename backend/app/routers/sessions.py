@@ -19,25 +19,14 @@ def submit_session(data: SessionCreate, db: DbSession = Depends(get_db)):
     if data.correct > data.questions:
         raise HTTPException(status_code=400, detail="correct cannot exceed questions")
 
-    # Get recent sessions for diminishing returns check (last 20)
-    recent = (
-        db.query(Session)
-        .filter(Session.player_id == player.id)
-        .order_by(Session.created_at.desc())
-        .limit(20)
-        .all()
-    )
-
     # Calculate points
     points = calculate_session_points(
-        mode=data.mode,
-        difficulty=data.difficulty,
         questions=data.questions,
         correct=data.correct,
         hints_used=data.hints_used,
+        max_streak=data.max_streak,
         player_clock_power=player.clock_power,
         player_current_tier=player.current_tier,
-        recent_sessions=recent,
     )
 
     # Create session record
@@ -48,6 +37,7 @@ def submit_session(data: SessionCreate, db: DbSession = Depends(get_db)):
         questions=data.questions,
         correct=data.correct,
         hints_used=data.hints_used,
+        max_streak=data.max_streak,
         avg_response_ms=data.avg_response_ms,
         speedrun_score=data.speedrun_score,
         points_earned=points,

@@ -33,6 +33,8 @@ export function ReadTheClock({ difficulty, timeFormatMix, totalQuestions = 10, o
   const [selected, setSelected] = useState<string | null>(null)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
+  const [_currentStreak, setCurrentStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
   const [showHint, setShowHint] = useState(false)
@@ -54,6 +56,13 @@ export function ReadTheClock({ difficulty, timeFormatMix, totalQuestions = 10, o
 
     if (option === question.correctAnswer) {
       setCorrect(c => c + 1)
+      setCurrentStreak(s => {
+        const next = s + 1
+        setMaxStreak(m => Math.max(m, next))
+        return next
+      })
+    } else {
+      setCurrentStreak(0)
     }
   }, [selected, questionStart, question.correctAnswer])
 
@@ -70,6 +79,7 @@ export function ReadTheClock({ difficulty, timeFormatMix, totalQuestions = 10, o
         questions: totalQuestions,
         correct,
         hints_used: hintsUsed,
+        max_streak: maxStreak,
         avg_response_ms: avgMs,
       })
       return

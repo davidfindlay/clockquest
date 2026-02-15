@@ -158,6 +158,8 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
   const [questionIndex, setQuestionIndex] = useState(0)
   const [correct, setCorrect] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
+  const [_currentStreak, setCurrentStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
   const [responseTimes, setResponseTimes] = useState<number[]>([])
   const [questionStart, setQuestionStart] = useState(Date.now())
 
@@ -185,6 +187,13 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
     setResponseTimes(prev => [...prev, elapsed])
     if (option === correctAnswer) {
       setCorrect(c => c + 1)
+      setCurrentStreak(s => {
+        const next = s + 1
+        setMaxStreak(m => Math.max(m, next))
+        return next
+      })
+    } else {
+      setCurrentStreak(0)
     }
   }, [selectedChoice, questionStart, correctAnswer])
 
@@ -194,6 +203,13 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
     setResponseTimes(prev => [...prev, elapsed])
     if (isSetCorrect) {
       setCorrect(c => c + 1)
+      setCurrentStreak(s => {
+        const next = s + 1
+        setMaxStreak(m => Math.max(m, next))
+        return next
+      })
+    } else {
+      setCurrentStreak(0)
     }
   }, [questionStart, isSetCorrect])
 
@@ -217,6 +233,7 @@ export function QuestRun({ tierInfo, totalQuestions = 10, onComplete }: QuestRun
         questions: totalQuestions,
         correct,
         hints_used: hintsUsed,
+        max_streak: maxStreak,
         avg_response_ms: avgMs,
       })
       return

@@ -36,6 +36,7 @@ export interface SessionCreate {
   questions: number
   correct: number
   hints_used: number
+  max_streak: number
   avg_response_ms?: number
   speedrun_score?: number
 }
@@ -48,6 +49,7 @@ export interface Session {
   questions: number
   correct: number
   hints_used: number
+  max_streak: number
   avg_response_ms: number | null
   speedrun_score: number | null
   points_earned: number
