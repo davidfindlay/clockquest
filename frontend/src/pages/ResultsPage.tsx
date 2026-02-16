@@ -42,7 +42,7 @@ export function ResultsPage() {
         {/* Narrow screens: callout first, then character. Wide screens: character then callout */}
         <div className="order-1 md:order-2 relative bg-white text-slate-800 rounded-2xl px-6 py-5 shadow-2xl w-full min-h-[220px] flex flex-col justify-between">
           <div className="hidden md:block absolute -left-3 bottom-8 w-0 h-0 border-y-[12px] border-y-transparent border-r-[16px] border-r-white" />
-          <div className="md:hidden absolute left-12 -top-3 w-0 h-0 border-x-[12px] border-x-transparent border-b-[14px] border-b-white" />
+          <div className="md:hidden absolute left-12 -bottom-3 w-0 h-0 border-x-[12px] border-x-transparent border-t-[14px] border-t-white" />
 
           <div>
             <h2 className="text-2xl font-black mb-4">Results</h2>
@@ -99,8 +99,7 @@ export function ResultsPage() {
       )}
 
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={() => navigate('/hub')}>Back to Hub</Button>
-        <Button onClick={() => navigate(`/play/${result.session.mode}`)}>Play Again</Button>
+        <Button onClick={() => navigate('/hub')}>Back to Hub</Button>
       </div>
     </div>
   )
