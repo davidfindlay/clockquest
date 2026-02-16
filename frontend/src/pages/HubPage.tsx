@@ -7,13 +7,14 @@ import type { PlayerBriefing } from '../types'
 
 export function HubPage() {
   const navigate = useNavigate()
-  const { player, setPlayer } = useGame()
+  const { world, player, setPlayer } = useGame()
   const [briefing, setBriefing] = useState<PlayerBriefing | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!player) {
-      navigate('/')
+      // If world is still selected, switch-player should land on /players, not welcome.
+      navigate(world ? '/players' : '/')
       return
     }
     setLoading(true)
@@ -23,7 +24,7 @@ export function HubPage() {
         setPlayer(b.player)
       })
       .finally(() => setLoading(false))
-  }, [player?.id])
+  }, [player?.id, world, navigate, setPlayer])
 
   if (!player) return null
 
