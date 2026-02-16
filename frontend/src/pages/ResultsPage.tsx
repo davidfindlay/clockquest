@@ -28,8 +28,9 @@ export function ResultsPage() {
   const perfectNoHints = result.session.correct === result.session.questions && result.session.hints_used === 0
   const character = perfectNoHints ? 'tock' : 'tick'
   const characterImage = character === 'tock' ? tockCelebrate : tickTeach
-  const tierName = getTierByIndex(result.new_tier).name
-  const pointsLostToHints = result.session.hints_used
+  const tierInfo = getTierByIndex(result.new_tier)
+  const tierName = tierInfo.name
+  const hintsUsed = result.session.hints_used
 
   return (
     <div className="min-h-full p-6 pt-10 flex flex-col items-center">
@@ -64,12 +65,15 @@ export function ResultsPage() {
                 <div className="text-xl font-black">{Math.round(result.new_clock_power)}</div>
               </div>
               <div className="rounded-xl bg-slate-100 p-3">
-                <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Points Lost to Hints</div>
-                <div className="text-xl font-black text-rose-700">-{pointsLostToHints}</div>
+                <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Hints</div>
+                <div className={`text-xl font-black ${hintsUsed === 0 ? 'text-slate-900' : 'text-rose-700'}`}>{hintsUsed}</div>
               </div>
               <div className="rounded-xl bg-slate-100 p-3">
                 <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Tier</div>
-                <div className="text-xl font-black">{tierName}</div>
+                <div className="text-xl font-black inline-flex items-center justify-center gap-2">
+                  <img src={tierInfo.icon} alt={tierName} className="w-7 h-7" />
+                  <span>{tierName}</span>
+                </div>
               </div>
             </div>
 
