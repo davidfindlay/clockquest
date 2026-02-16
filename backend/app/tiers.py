@@ -299,6 +299,28 @@ TIERS: list[TierDefinition] = [
 
 MAX_TIER = len(TIERS) - 1
 
+# Character visual configuration (backend source of truth).
+# mobile_fallback_callout_position is always "top" as requested.
+CHARACTER_VISUAL_CONFIG = {
+    "mobile_fallback_callout_position": "top",
+    "images": [
+        {"filename": "tick_pose_01.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "right"},
+        {"filename": "tick_pose_02.png", "character": "tick", "use_types": ["tips", "results"], "default_callout_position": "right"},
+        {"filename": "tick_pose_03.png", "character": "tick", "use_types": ["tips", "results"], "default_callout_position": "left"},
+        {"filename": "tick_pose_04.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "right"},
+        {"filename": "tick_pose_05.png", "character": "tick", "use_types": ["results"], "default_callout_position": "left"},
+        {"filename": "tock_pose_01.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "left"},
+        {"filename": "tock_pose_02.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "left"},
+        {"filename": "tock_pose_03.png", "character": "tock", "use_types": ["celebration"], "default_callout_position": "right"},
+        {"filename": "tock_pose_04.png", "character": "tock", "use_types": ["celebration", "tips"], "default_callout_position": "left"},
+        {"filename": "tock_pose_05.png", "character": "tock", "use_types": ["celebration"], "default_callout_position": "right"},
+    ],
+}
+
+
+def character_visual_config_for_api() -> dict:
+    return CHARACTER_VISUAL_CONFIG
+
 
 # --- Helper lookups (derived from TIERS, not duplicated) ---
 

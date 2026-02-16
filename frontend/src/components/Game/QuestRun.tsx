@@ -13,6 +13,7 @@ import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 import type { TierInfo } from '../../utils/tier-config'
 import { CharacterCalloutOverlay } from '../UI/CharacterCalloutOverlay'
+import { pickCharacterVisual } from '../../utils/character-visual-config'
 
 interface QuestRunProps {
   playerId: number
@@ -185,7 +186,7 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
   const [showHint, setShowHint] = useState(false)
   const [hintText, setHintText] = useState('')
   const [hintPenalty, setHintPenalty] = useState(0)
-  const [calloutQueue, setCalloutQueue] = useState<CharacterTip[]>([])
+  const [calloutQueue, setCalloutQueue] = useState<Array<CharacterTip & { imageSrc: string; calloutPosition: 'left' | 'right' | 'top' | 'bottom' }>>([])
   const [streakCongratsShown, setStreakCongratsShown] = useState(false)
   const [pendingStreakCongrats, setPendingStreakCongrats] = useState(false)
   const startTipRequestedRef = useRef(false)
@@ -202,7 +203,12 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
     startTipRequestedRef.current = true
 
     getQuestStartTip({ player_id: playerId, tier_index: tierInfo.index })
-      .then((tip) => { if (tip) setCalloutQueue(q => [...q, tip]) })
+      .then((tip) => {
+        if (tip) {
+          const visual = pickCharacterVisual(tip.character, 'tips')
+          setCalloutQueue(q => [...q, { ...tip, imageSrc: visual.src, calloutPosition: visual.calloutPosition }])
+        }
+      })
       .catch(() => {})
   }, [playerId, tierInfo.index])
 
@@ -282,7 +288,10 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
     }
 
     if (pendingStreakCongrats) {
-      setCalloutQueue(q => [...q, { character: 'tock', message: 'Nice streak! +5 bonus points for 5 in a row!', tip_id: 'streak_bonus' }])
+      {
+        const visual = pickCharacterVisual('tock', 'celebration')
+        setCalloutQueue(q => [...q, { character: 'tock', message: 'Nice streak! +5 bonus points for 5 in a row!', tip_id: 'streak_bonus', imageSrc: visual.src, calloutPosition: visual.calloutPosition }])
+      }
       setPendingStreakCongrats(false)
     }
 
@@ -371,6 +380,8 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
         <CharacterCalloutOverlay
           character={calloutQueue[0].character}
           message={calloutQueue[0].message}
+          imageSrc={calloutQueue[0].imageSrc}
+          calloutPosition={calloutQueue[0].calloutPosition}
           onDismiss={() => setCalloutQueue(q => q.slice(1))}
         />
       )}

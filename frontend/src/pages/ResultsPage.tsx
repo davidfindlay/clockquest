@@ -3,9 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/UI/Button'
 import { playSound } from '../utils/sounds'
 import { getTierByIndex } from '../utils/tier-config'
-import tickTeach from '../assets/characters/tick_teach.png'
-import tockCelebrate from '../assets/characters/tock_celebrate.png'
 import type { SessionResult } from '../types'
+import { pickCharacterVisual } from '../utils/character-visual-config'
 
 export function ResultsPage() {
   const location = useLocation()
@@ -27,7 +26,8 @@ export function ResultsPage() {
 
   const perfectNoHints = result.session.correct === result.session.questions && result.session.hints_used === 0
   const character = perfectNoHints ? 'tock' : 'tick'
-  const characterImage = character === 'tock' ? tockCelebrate : tickTeach
+  const resultUseType = perfectNoHints ? 'celebration' : 'results'
+  const visual = pickCharacterVisual(character, resultUseType)
   const tierInfo = getTierByIndex(result.new_tier)
   const tierName = tierInfo.name
   const hintsUsed = result.session.hints_used
@@ -38,10 +38,14 @@ export function ResultsPage() {
         {accuracy >= 80 ? 'Great Job!' : accuracy >= 50 ? 'Good Effort!' : 'Keep Practising!'}
       </h1>
 
-      <div className="w-full max-w-4xl flex flex-col md:flex-row md:items-end items-center gap-4 md:gap-6 mb-6">
+      <div className={`w-full max-w-4xl flex flex-col ${visual.calloutPosition === 'left' ? 'md:flex-row-reverse' : 'md:flex-row'} md:items-end items-center gap-4 md:gap-6 mb-6`}>
         {/* Narrow screens: callout first, then character. Wide screens: character then callout */}
         <div className="order-1 md:order-2 relative bg-white text-slate-800 rounded-2xl px-6 py-5 shadow-2xl w-full min-h-[220px] flex flex-col justify-between">
-          <div className="hidden md:block absolute -left-3 bottom-8 w-0 h-0 border-y-[12px] border-y-transparent border-r-[16px] border-r-white" />
+          {visual.calloutPosition === 'left' ? (
+            <div className="hidden md:block absolute -right-3 bottom-8 w-0 h-0 border-y-[12px] border-y-transparent border-l-[16px] border-l-white" />
+          ) : (
+            <div className="hidden md:block absolute -left-3 bottom-8 w-0 h-0 border-y-[12px] border-y-transparent border-r-[16px] border-r-white" />
+          )}
           <div className="md:hidden absolute left-12 -bottom-3 w-0 h-0 border-x-[12px] border-x-transparent border-t-[14px] border-t-white" />
 
           <div>
@@ -89,7 +93,7 @@ export function ResultsPage() {
           </div>
         </div>
 
-        <img src={characterImage} alt={character} className="order-2 md:order-1 w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-2xl" />
+        <img src={visual.src} alt={character} className="order-2 md:order-1 w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-2xl" />
       </div>
 
       {result.session.speedrun_score !== null && (
