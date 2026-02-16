@@ -32,6 +32,7 @@ class Player(Base):
     tier_trials = relationship("TierTrial", back_populates="player", cascade="all, delete-orphan")
     quests = relationship("Quest", back_populates="player", cascade="all, delete-orphan")
     quest_runs = relationship("QuestRun", back_populates="player", cascade="all, delete-orphan")
+    seen_tips = relationship("PlayerTipSeen", back_populates="player", cascade="all, delete-orphan")
 
 
 class Session(Base):
@@ -98,3 +99,15 @@ class QuestRun(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     player = relationship("Player", back_populates="quest_runs")
+
+
+class PlayerTipSeen(Base):
+    __tablename__ = "player_tip_seen"
+
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    tier_index = Column(Integer, nullable=False)
+    tip_id = Column(String(100), nullable=False)
+    seen_at = Column(DateTime, default=datetime.utcnow)
+
+    player = relationship("Player", back_populates="seen_tips")

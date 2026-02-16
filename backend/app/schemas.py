@@ -176,6 +176,17 @@ class QuestRunResponse(BaseModel):
         from_attributes = True
 
 
+class QuestStartTipRequest(BaseModel):
+    player_id: int
+    tier_index: int
+
+
+class CharacterTipResponse(BaseModel):
+    character: str
+    message: str
+    tip_id: str
+
+
 # --- Leaderboard ---
 
 class LeaderboardEntry(BaseModel):

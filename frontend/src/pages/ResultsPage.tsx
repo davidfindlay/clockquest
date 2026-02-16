@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/UI/Button'
 import { Card } from '../components/UI/Card'
 import { TierBadge } from '../components/Progression/TierBadge'
 import { playSound } from '../utils/sounds'
 import type { SessionResult } from '../types'
+import { CharacterCalloutOverlay } from '../components/UI/CharacterCalloutOverlay'
 
 export function ResultsPage() {
   const location = useLocation()
@@ -25,8 +26,32 @@ export function ResultsPage() {
     ? Math.round((result.session.correct / result.session.questions) * 100)
     : 0
 
+  const callouts = useMemo(() => {
+    if (!result || result.session.mode !== 'quest') return [] as { character: 'tick' | 'tock'; message: string }[]
+
+    const msgs: { character: 'tick' | 'tock'; message: string }[] = []
+    const perfectNoHints = result.session.correct === result.session.questions && result.session.hints_used === 0
+    if (perfectNoHints) {
+      msgs.push({ character: 'tock', message: 'Flawless quest run! +5 bonus for perfect with no hints!' })
+    }
+    msgs.push({
+      character: perfectNoHints ? 'tock' : 'tick',
+      message: `Quest summary: ${result.session.correct}/${result.session.questions} correct, +${Math.round(result.points_earned)} power.`,
+    })
+    return msgs
+  }, [result])
+
+  const [calloutIndex, setCalloutIndex] = useState(0)
+
   return (
     <div className="min-h-full p-6 pt-12 flex flex-col items-center">
+      {calloutIndex < callouts.length && (
+        <CharacterCalloutOverlay
+          character={callouts[calloutIndex].character}
+          message={callouts[calloutIndex].message}
+          onDismiss={() => setCalloutIndex(i => i + 1)}
+        />
+      )}
       <h1 className="text-4xl font-black mb-6">
         {accuracy >= 80 ? 'Great Job!' : accuracy >= 50 ? 'Good Effort!' : 'Keep Practising!'}
       </h1>

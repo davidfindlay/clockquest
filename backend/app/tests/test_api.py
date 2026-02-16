@@ -294,3 +294,19 @@ def test_streak_shows_yesterday_progress_before_today_play():
     streak = next(c for c in data["challenges"] if c["challenge_type"] == "daily_streak")
     assert streak["target"] == 3
     assert streak["progress"] == 1
+
+
+def test_quest_start_tip_endpoint_returns_tip_shape():
+    w = client.post("/api/worlds", json={"name": "W"}).json()
+    p = client.post("/api/players", json={"nickname": "Tipper", "world_id": w["id"]}).json()
+
+    r = client.post('/api/challenges/quest-start-tip', json={
+        'player_id': p['id'],
+        'tier_index': 0,
+    })
+    assert r.status_code == 200
+    data = r.json()
+    if data is not None:
+        assert 'character' in data
+        assert 'message' in data
+        assert 'tip_id' in data
