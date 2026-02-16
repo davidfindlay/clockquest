@@ -22,6 +22,8 @@ export interface TierInfo {
   timeFormatMix: Record<string, number>
   setClockAdvancedHintProgressThreshold: number
   setClockAdvancedHintPenalty: number
+  questTipFrequency: number
+  characterTips: { id: string; character: 'tick' | 'tock'; message: string }[]
 }
 
 
@@ -42,17 +44,17 @@ const TIER_ICONS: Record<number, string> = {
 
 // Fallback tier data used before API response arrives (keeps app functional during load)
 const FALLBACK_TIERS: TierInfo[] = [
-  { index: 0, name: 'Wood', color: '#8B6914', icon: woodIcon, minPower: 0, maxPower: 99, skill: null, questRunMix: { hour: 1.0 }, timeFormatMix: { digital: 1.0 }, setClockAdvancedHintProgressThreshold: 100, setClockAdvancedHintPenalty: 0 },
-  { index: 1, name: 'Stone', color: '#808080', icon: stoneIcon, minPower: 100, maxPower: 199, skill: 'Reads hours on the clock', questRunMix: { hour: 0.3, half: 0.7 }, timeFormatMix: { digital: 0.7, digital_ampm: 0.3 }, setClockAdvancedHintProgressThreshold: 100, setClockAdvancedHintPenalty: 0 },
-  { index: 2, name: 'Coal', color: '#333333', icon: coalIcon, minPower: 200, maxPower: 299, skill: 'Reads half past / half to', questRunMix: { half: 0.2, quarter: 0.8 }, timeFormatMix: { digital: 0.4, digital_ampm: 0.3, words_past_to: 0.3 }, setClockAdvancedHintProgressThreshold: 90, setClockAdvancedHintPenalty: 1 },
-  { index: 3, name: 'Iron', color: '#C0C0C0', icon: ironIcon, minPower: 300, maxPower: 399, skill: 'Reads quarter past / quarter to', questRunMix: { quarter: 0.5, five_min: 0.5 }, timeFormatMix: { digital: 0.3, digital_ampm: 0.2, words_past_to: 0.5 }, setClockAdvancedHintProgressThreshold: 85, setClockAdvancedHintPenalty: 1 },
-  { index: 4, name: 'Gold', color: '#FFD700', icon: goldIcon, minPower: 400, maxPower: 499, skill: 'Reads 5-minute intervals', questRunMix: { quarter: 0.2, five_min: 0.8 }, timeFormatMix: { digital: 0.2, digital_ampm: 0.2, words_past_to: 0.6 }, setClockAdvancedHintProgressThreshold: 80, setClockAdvancedHintPenalty: 1 },
-  { index: 5, name: 'Redstone', color: '#FF0000', icon: redstoneIcon, minPower: 500, maxPower: 599, skill: 'Reads 5-minute intervals quickly', questRunMix: { five_min: 0.5, one_min: 0.5 }, timeFormatMix: { digital: 0.2, words_past_to: 0.5, full_words: 0.3 }, setClockAdvancedHintProgressThreshold: 75, setClockAdvancedHintPenalty: 2 },
-  { index: 6, name: 'Lapis', color: '#1E40AF', icon: lapisIcon, minPower: 600, maxPower: 699, skill: 'Reads any minute precisely', questRunMix: { five_min: 0.2, one_min: 0.8 }, timeFormatMix: { digital: 0.1, words_past_to: 0.4, full_words: 0.5 }, setClockAdvancedHintProgressThreshold: 75, setClockAdvancedHintPenalty: 2 },
-  { index: 7, name: 'Diamond', color: '#00CED1', icon: diamondIcon, minPower: 700, maxPower: 799, skill: 'Masters mixed clock reading', questRunMix: { five_min: 0.1, one_min: 0.9 }, timeFormatMix: { words_past_to: 0.3, full_words: 0.7 }, setClockAdvancedHintProgressThreshold: 70, setClockAdvancedHintPenalty: 2 },
-  { index: 8, name: 'Netherite', color: '#4A0E4E', icon: netheriteIcon, minPower: 800, maxPower: 899, skill: 'Calculates time intervals', questRunMix: { one_min: 0.7, interval: 0.3 }, timeFormatMix: { words_past_to: 0.2, full_words: 0.8 }, setClockAdvancedHintProgressThreshold: 65, setClockAdvancedHintPenalty: 3 },
-  { index: 9, name: 'Beacon', color: '#FFEA00', icon: beaconIcon, minPower: 900, maxPower: 999, skill: 'Advanced time reasoning', questRunMix: { one_min: 0.5, interval: 0.5 }, timeFormatMix: { digital_ampm: 0.1, full_words: 0.9 }, setClockAdvancedHintProgressThreshold: 65, setClockAdvancedHintPenalty: 3 },
-  { index: 10, name: 'Clock Master', color: '#FF69B4', icon: clockMasterIcon, minPower: 1000, maxPower: 1000, skill: 'Clock Master — full mastery!', questRunMix: { one_min: 0.3, interval: 0.7 }, timeFormatMix: { full_words: 1.0 }, setClockAdvancedHintProgressThreshold: 60, setClockAdvancedHintPenalty: 3 },
+  { index: 0, name: 'Wood', color: '#8B6914', icon: woodIcon, minPower: 0, maxPower: 99, skill: null, questRunMix: { hour: 1.0 }, timeFormatMix: { digital: 1.0 }, setClockAdvancedHintProgressThreshold: 100, setClockAdvancedHintPenalty: 0, questTipFrequency: 0.5, characterTips: [] },
+  { index: 1, name: 'Stone', color: '#808080', icon: stoneIcon, minPower: 100, maxPower: 199, skill: 'Reads hours on the clock', questRunMix: { hour: 0.3, half: 0.7 }, timeFormatMix: { digital: 0.7, digital_ampm: 0.3 }, setClockAdvancedHintProgressThreshold: 100, setClockAdvancedHintPenalty: 0, questTipFrequency: 0.5, characterTips: [] },
+  { index: 2, name: 'Coal', color: '#333333', icon: coalIcon, minPower: 200, maxPower: 299, skill: 'Reads half past / half to', questRunMix: { half: 0.2, quarter: 0.8 }, timeFormatMix: { digital: 0.4, digital_ampm: 0.3, words_past_to: 0.3 }, setClockAdvancedHintProgressThreshold: 90, setClockAdvancedHintPenalty: 1, questTipFrequency: 0.5, characterTips: [] },
+  { index: 3, name: 'Iron', color: '#C0C0C0', icon: ironIcon, minPower: 300, maxPower: 399, skill: 'Reads quarter past / quarter to', questRunMix: { quarter: 0.5, five_min: 0.5 }, timeFormatMix: { digital: 0.3, digital_ampm: 0.2, words_past_to: 0.5 }, setClockAdvancedHintProgressThreshold: 85, setClockAdvancedHintPenalty: 1, questTipFrequency: 0.5, characterTips: [] },
+  { index: 4, name: 'Gold', color: '#FFD700', icon: goldIcon, minPower: 400, maxPower: 499, skill: 'Reads 5-minute intervals', questRunMix: { quarter: 0.2, five_min: 0.8 }, timeFormatMix: { digital: 0.2, digital_ampm: 0.2, words_past_to: 0.6 }, setClockAdvancedHintProgressThreshold: 80, setClockAdvancedHintPenalty: 1, questTipFrequency: 0.5, characterTips: [] },
+  { index: 5, name: 'Redstone', color: '#FF0000', icon: redstoneIcon, minPower: 500, maxPower: 599, skill: 'Reads 5-minute intervals quickly', questRunMix: { five_min: 0.5, one_min: 0.5 }, timeFormatMix: { digital: 0.2, words_past_to: 0.5, full_words: 0.3 }, setClockAdvancedHintProgressThreshold: 75, setClockAdvancedHintPenalty: 2, questTipFrequency: 0.5, characterTips: [] },
+  { index: 6, name: 'Lapis', color: '#1E40AF', icon: lapisIcon, minPower: 600, maxPower: 699, skill: 'Reads any minute precisely', questRunMix: { five_min: 0.2, one_min: 0.8 }, timeFormatMix: { digital: 0.1, words_past_to: 0.4, full_words: 0.5 }, setClockAdvancedHintProgressThreshold: 75, setClockAdvancedHintPenalty: 2, questTipFrequency: 0.5, characterTips: [] },
+  { index: 7, name: 'Diamond', color: '#00CED1', icon: diamondIcon, minPower: 700, maxPower: 799, skill: 'Masters mixed clock reading', questRunMix: { five_min: 0.1, one_min: 0.9 }, timeFormatMix: { words_past_to: 0.3, full_words: 0.7 }, setClockAdvancedHintProgressThreshold: 70, setClockAdvancedHintPenalty: 2, questTipFrequency: 0.5, characterTips: [] },
+  { index: 8, name: 'Netherite', color: '#4A0E4E', icon: netheriteIcon, minPower: 800, maxPower: 899, skill: 'Calculates time intervals', questRunMix: { one_min: 0.7, interval: 0.3 }, timeFormatMix: { words_past_to: 0.2, full_words: 0.8 }, setClockAdvancedHintProgressThreshold: 65, setClockAdvancedHintPenalty: 3, questTipFrequency: 0.5, characterTips: [] },
+  { index: 9, name: 'Beacon', color: '#FFEA00', icon: beaconIcon, minPower: 900, maxPower: 999, skill: 'Advanced time reasoning', questRunMix: { one_min: 0.5, interval: 0.5 }, timeFormatMix: { digital_ampm: 0.1, full_words: 0.9 }, setClockAdvancedHintProgressThreshold: 65, setClockAdvancedHintPenalty: 3, questTipFrequency: 0.5, characterTips: [] },
+  { index: 10, name: 'Clock Master', color: '#FF69B4', icon: clockMasterIcon, minPower: 1000, maxPower: 1000, skill: 'Clock Master — full mastery!', questRunMix: { one_min: 0.3, interval: 0.7 }, timeFormatMix: { full_words: 1.0 }, setClockAdvancedHintProgressThreshold: 60, setClockAdvancedHintPenalty: 3, questTipFrequency: 0.5, characterTips: [] },
 ]
 
 // Mutable tier list — starts as fallback, replaced when API responds
@@ -71,6 +73,8 @@ interface ApiTier {
   time_format_mix: Record<string, number>
   set_clock_advanced_hint_progress_threshold: number
   set_clock_advanced_hint_penalty: number
+  quest_tip_frequency: number
+  character_tips: { id: string; character: "tick" | "tock"; message: string }[]
 }
 
 
@@ -87,6 +91,8 @@ function applyApiTiers(apiTiers: ApiTier[]) {
     timeFormatMix: t.time_format_mix,
     setClockAdvancedHintProgressThreshold: t.set_clock_advanced_hint_progress_threshold,
     setClockAdvancedHintPenalty: t.set_clock_advanced_hint_penalty,
+    questTipFrequency: t.quest_tip_frequency,
+    characterTips: t.character_tips ?? [],
   }))
 }
 

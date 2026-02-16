@@ -30,6 +30,10 @@ class TierDefinition:
     set_clock_advanced_hint_progress_threshold: int = 50
     # Score penalty applied each time hint is used while in advanced hint mode.
     set_clock_advanced_hint_penalty: int = 2
+    # Chance (0.0-1.0) to show a quest-start character tip for this tier.
+    quest_tip_frequency: float = 0.5
+    # Tip pool for quest start callouts. {id, character, message}
+    character_tips: list[dict] = field(default_factory=list, repr=False)
 
 
 TIERS: list[TierDefinition] = [
@@ -45,6 +49,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.7, "digital_ampm": 0.3},
         set_clock_advanced_hint_progress_threshold=100,
         set_clock_advanced_hint_penalty=0,
+        quest_tip_frequency=0.8,
+        character_tips=[
+            {"id": "wood_focus", "character": "tick", "message": "Let's start easy. Watch the short hand first!"},
+            {"id": "wood_hint", "character": "tick", "message": "Need help? Tap Hint any time."},
+        ],
     ),
     TierDefinition(
         index=1,
@@ -64,6 +73,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.4, "digital_ampm": 0.3, "words_past_to": 0.3},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=1,
+        quest_tip_frequency=0.6,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "Steady hands. Accuracy first, speed second."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Use the target text, then set minute hand carefully."},
+        ],
     ),
     TierDefinition(
         index=2,
@@ -83,6 +97,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.3, "digital_ampm": 0.2, "words_past_to": 0.5},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=3,
@@ -102,6 +121,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.1, "digital_ampm": 0.2, "words_past_to": 0.7},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=4,
@@ -121,6 +145,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.2, "digital_ampm": 0.2, "words_past_to": 0.6},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=5,
@@ -140,6 +169,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.2, "words_past_to": 0.5, "full_words": 0.3},
         set_clock_advanced_hint_progress_threshold=0,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=6,
@@ -159,6 +193,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital": 0.1, "words_past_to": 0.4, "full_words": 0.5},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=7,
@@ -178,6 +217,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"words_past_to": 0.3, "full_words": 0.7},
         set_clock_advanced_hint_progress_threshold=0,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=8,
@@ -197,6 +241,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"words_past_to": 0.2, "full_words": 0.8},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=9,
@@ -216,6 +265,11 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"digital_ampm": 0.1, "full_words": 0.9},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
     TierDefinition(
         index=10,
@@ -235,10 +289,37 @@ TIERS: list[TierDefinition] = [
         time_format_mix={"full_words": 1.0},
         set_clock_advanced_hint_progress_threshold=50,
         set_clock_advanced_hint_penalty=2,
+        quest_tip_frequency=0.5,
+        character_tips=[
+            {"id": "tier_tip_a", "character": "tick", "message": "You're in tougher territory — stay focused."},
+            {"id": "tier_tip_b", "character": "tick", "message": "Great rhythm beats rushing. You've got this."},
+        ],
     ),
 ]
 
 MAX_TIER = len(TIERS) - 1
+
+# Character visual configuration (backend source of truth).
+# mobile_fallback_callout_position is always "top" as requested.
+CHARACTER_VISUAL_CONFIG = {
+    "mobile_fallback_callout_position": "top",
+    "images": [
+        {"filename": "tick_pose_01.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "left"},
+        {"filename": "tick_pose_02.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "right"},
+        {"filename": "tick_pose_03.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "left"},
+        {"filename": "tick_pose_04.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "right"},
+        {"filename": "tick_pose_05.png", "character": "tick", "use_types": ["tips"], "default_callout_position": "right"},
+        {"filename": "tock_pose_01.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "left"},
+        {"filename": "tock_pose_02.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "right"},
+        {"filename": "tock_pose_03.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "left"},
+        {"filename": "tock_pose_04.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "right"},
+        {"filename": "tock_pose_05.png", "character": "tock", "use_types": ["celebration", "results"], "default_callout_position": "left"},
+    ],
+}
+
+
+def character_visual_config_for_api() -> dict:
+    return CHARACTER_VISUAL_CONFIG
 
 
 # --- Helper lookups (derived from TIERS, not duplicated) ---
@@ -333,6 +414,8 @@ def tier_list_for_api() -> list[dict]:
             "time_format_mix": t.time_format_mix,
             "set_clock_advanced_hint_progress_threshold": t.set_clock_advanced_hint_progress_threshold,
             "set_clock_advanced_hint_penalty": t.set_clock_advanced_hint_penalty,
+            "quest_tip_frequency": t.quest_tip_frequency,
+            "character_tips": t.character_tips,
         }
         for t in TIERS
     ]

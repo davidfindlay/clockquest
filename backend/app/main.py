@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import engine, Base
 from .routers import worlds, players, sessions, trials, leaderboard, challenges
-from .tiers import tier_list_for_api
+from .tiers import tier_list_for_api, character_visual_config_for_api
 
 logger = logging.getLogger(__name__)
 
@@ -65,4 +65,10 @@ def health_check():
 def get_tiers():
     """Return all tier definitions. Used by frontend to avoid hardcoded tier data."""
     return tier_list_for_api()
+
+
+@app.get("/api/character-visual-config")
+def get_character_visual_config():
+    """Return character image usage + callout positioning configuration."""
+    return character_visual_config_for_api()
 

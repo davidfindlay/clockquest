@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { AnalogClock } from '../Clock/AnalogClock'
 import { InteractiveClock } from '../Clock/InteractiveClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
@@ -8,10 +8,12 @@ import { formatTimeAs, pickTimeFormat, getSnapDegrees } from '../Clock/clock-uti
 import { playSound } from '../../utils/sounds'
 import { SoundToggle } from '../UI/SoundToggle'
 import exitIcon from '../../assets/exit_quest.svg'
-import { submitQuestRun } from '../../api/challenges'
+import { submitQuestRun, getQuestStartTip, type CharacterTip } from '../../api/challenges'
 import type { TimeFormat } from '../Clock/clock-utils'
 import type { Difficulty, SessionCreate } from '../../types'
 import type { TierInfo } from '../../utils/tier-config'
+import { CharacterCalloutOverlay } from '../UI/CharacterCalloutOverlay'
+import { pickCharacterVisual } from '../../utils/character-visual-config'
 
 interface QuestRunProps {
   playerId: number
@@ -184,6 +186,10 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
   const [showHint, setShowHint] = useState(false)
   const [hintText, setHintText] = useState('')
   const [hintPenalty, setHintPenalty] = useState(0)
+  const [calloutQueue, setCalloutQueue] = useState<Array<CharacterTip & { imageSrc: string; calloutPosition: 'left' | 'right' | 'top' | 'bottom' }>>([])
+  const [streakCongratsShown, setStreakCongratsShown] = useState(false)
+  const [pendingStreakCongrats, setPendingStreakCongrats] = useState(false)
+  const startTipRequestedRef = useRef(false)
 
   const q = questions[questionIndex]
   const correctAnswer = q.display
@@ -191,6 +197,20 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
 
   const answered = q.mode === 'read' ? selectedChoice !== null : submitted
   const effectiveCorrect = Math.max(0, correct - hintPenalty)
+
+  useEffect(() => {
+    if (startTipRequestedRef.current) return
+    startTipRequestedRef.current = true
+
+    getQuestStartTip({ player_id: playerId, tier_index: tierInfo.index })
+      .then((tip) => {
+        if (tip) {
+          const visual = pickCharacterVisual(tip.character, 'tips')
+          setCalloutQueue(q => [...q, { ...tip, imageSrc: visual.src, calloutPosition: visual.calloutPosition }])
+        }
+      })
+      .catch(() => {})
+  }, [playerId, tierInfo.index])
 
   const handleReadSelect = useCallback((option: string) => {
     if (selectedChoice) return
@@ -203,13 +223,17 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
       setCurrentStreak(s => {
         const next = s + 1
         setMaxStreak(m => Math.max(m, next))
+        if (!streakCongratsShown && next >= 5) {
+          setPendingStreakCongrats(true)
+          setStreakCongratsShown(true)
+        }
         return next
       })
     } else {
       playSound('incorrect')
       setCurrentStreak(0)
     }
-  }, [selectedChoice, questionStart, correctAnswer])
+  }, [selectedChoice, questionStart, correctAnswer, streakCongratsShown])
 
   const handleSetSubmit = useCallback(() => {
     setSubmitted(true)
@@ -221,13 +245,17 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
       setCurrentStreak(s => {
         const next = s + 1
         setMaxStreak(m => Math.max(m, next))
+        if (!streakCongratsShown && next >= 5) {
+          setPendingStreakCongrats(true)
+          setStreakCongratsShown(true)
+        }
         return next
       })
     } else {
       playSound('incorrect')
       setCurrentStreak(0)
     }
-  }, [questionStart, isSetCorrect])
+  }, [questionStart, isSetCorrect, streakCongratsShown])
 
   const handleTimeChange = useCallback((h: number, m: number) => {
     if (!submitted) {
@@ -259,6 +287,14 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
       return
     }
 
+    if (pendingStreakCongrats) {
+      {
+        const visual = pickCharacterVisual('tock', 'celebration')
+        setCalloutQueue(q => [...q, { character: 'tock', message: 'Nice streak! +5 bonus points for 5 in a row!', tip_id: 'streak_bonus', imageSrc: visual.src, calloutPosition: visual.calloutPosition }])
+      }
+      setPendingStreakCongrats(false)
+    }
+
     const nextQ = questions[nextIdx]
     setQuestionIndex(nextIdx)
     setSelectedChoice(null)
@@ -268,7 +304,7 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
     setShowHint(false)
     setHintText('')
     setQuestionStart(Date.now())
-  }, [questionIndex, totalQuestions, effectiveCorrect, hintsUsed, responseTimes, onComplete, tierInfo.questRunMix, questions])
+  }, [questionIndex, totalQuestions, effectiveCorrect, hintsUsed, responseTimes, onComplete, tierInfo.questRunMix, questions, pendingStreakCongrats])
 
   const handleHint = useCallback(() => {
     setShowHint(true)
@@ -337,6 +373,17 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
             </div>
           </div>
         </div>
+      )}
+
+
+      {calloutQueue.length > 0 && (
+        <CharacterCalloutOverlay
+          character={calloutQueue[0].character}
+          message={calloutQueue[0].message}
+          imageSrc={calloutQueue[0].imageSrc}
+          calloutPosition={calloutQueue[0].calloutPosition}
+          onDismiss={() => setCalloutQueue(q => q.slice(1))}
+        />
       )}
 
       {/* Progress */}
