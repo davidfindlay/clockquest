@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { AnalogClock } from '../Clock/AnalogClock'
 import { InteractiveClock } from '../Clock/InteractiveClock'
 import { MultipleChoice } from '../UI/MultipleChoice'
@@ -188,6 +188,7 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
   const [calloutQueue, setCalloutQueue] = useState<CharacterTip[]>([])
   const [streakCongratsShown, setStreakCongratsShown] = useState(false)
   const [pendingStreakCongrats, setPendingStreakCongrats] = useState(false)
+  const startTipRequestedRef = useRef(false)
 
   const q = questions[questionIndex]
   const correctAnswer = q.display
@@ -197,6 +198,9 @@ export function QuestRun({ playerId, tierInfo, totalQuestions = 10, advancedSetH
   const effectiveCorrect = Math.max(0, correct - hintPenalty)
 
   useEffect(() => {
+    if (startTipRequestedRef.current) return
+    startTipRequestedRef.current = true
+
     getQuestStartTip({ player_id: playerId, tier_index: tierInfo.index })
       .then((tip) => { if (tip) setCalloutQueue(q => [...q, tip]) })
       .catch(() => {})
