@@ -38,9 +38,9 @@ export function ResultsPage() {
         {accuracy >= 80 ? 'Great Job!' : accuracy >= 50 ? 'Good Effort!' : 'Keep Practising!'}
       </h1>
 
-      <div className={`w-full max-w-4xl flex flex-col ${visual.calloutPosition === 'left' ? 'md:flex-row-reverse' : 'md:flex-row'} md:items-end items-center gap-4 md:gap-6 mb-6`}>
+      <div className={`w-full max-w-4xl flex flex-col ${visual.calloutPosition === 'left' ? 'md:flex-row' : 'md:flex-row-reverse'} md:items-end items-center gap-4 md:gap-6 mb-6`}>
         {/* Narrow screens: callout first, then character. Wide screens: character then callout */}
-        <div className="order-1 md:order-2 relative bg-white text-slate-800 rounded-2xl px-6 py-5 shadow-2xl w-full min-h-[220px] flex flex-col justify-between">
+        <div className="order-1 md:order-none relative bg-white text-slate-800 rounded-2xl px-6 py-5 shadow-2xl w-full min-h-[220px] flex flex-col justify-between">
           {visual.calloutPosition === 'left' ? (
             <div className="hidden md:block absolute -right-3 bottom-8 w-0 h-0 border-y-[12px] border-y-transparent border-l-[16px] border-l-white" />
           ) : (
@@ -93,7 +93,7 @@ export function ResultsPage() {
           </div>
         </div>
 
-        <img src={visual.src} alt={character} className="order-2 md:order-1 w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-2xl" />
+        <img src={visual.src} alt={character} className="order-2 md:order-none w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-2xl" />
       </div>
 
       {result.session.speedrun_score !== null && (

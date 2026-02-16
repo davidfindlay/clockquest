@@ -25,7 +25,9 @@ export function CharacterCalloutOverlay({
     return () => window.removeEventListener('keydown', onKey)
   }, [onDismiss])
 
-  const desktopRowClass = calloutPosition === 'left' ? 'md:flex-row-reverse' : 'md:flex-row'
+  // calloutPosition defines bubble placement relative to character on desktop.
+  // left => bubble left / character right, right => bubble right / character left
+  const desktopRowClass = calloutPosition === 'left' ? 'md:flex-row' : 'md:flex-row-reverse'
   const desktopTail = calloutPosition === 'left'
     ? <div className="hidden md:block absolute -right-3 bottom-6 w-0 h-0 border-y-[10px] border-y-transparent border-l-[14px] border-l-white" />
     : <div className="hidden md:block absolute -left-3 bottom-6 w-0 h-0 border-y-[10px] border-y-transparent border-r-[14px] border-r-white" />
