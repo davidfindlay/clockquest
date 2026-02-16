@@ -1,18 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/UI/Button'
-import { Card } from '../components/UI/Card'
 import { TierBadge } from '../components/Progression/TierBadge'
 import { playSound } from '../utils/sounds'
+import tickTeach from '../assets/characters/tick_teach.png'
+import tockCelebrate from '../assets/characters/tock_celebrate.png'
 import type { SessionResult } from '../types'
-import { CharacterCalloutOverlay } from '../components/UI/CharacterCalloutOverlay'
 
 export function ResultsPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const result = location.state?.result as SessionResult | undefined
 
-  // Play tada sound when results page loads
   useEffect(() => {
     if (result) playSound('tada')
   }, [result])
@@ -26,80 +25,63 @@ export function ResultsPage() {
     ? Math.round((result.session.correct / result.session.questions) * 100)
     : 0
 
-  const callouts = useMemo(() => {
-    if (!result || result.session.mode !== 'quest') return [] as { character: 'tick' | 'tock'; message: string }[]
+  const perfectNoHints = result.session.correct === result.session.questions && result.session.hints_used === 0
+  const character = perfectNoHints ? 'tock' : 'tick'
+  const characterImage = character === 'tock' ? tockCelebrate : tickTeach
 
-    const msgs: { character: 'tick' | 'tock'; message: string }[] = []
-    const perfectNoHints = result.session.correct === result.session.questions && result.session.hints_used === 0
-    if (perfectNoHints) {
-      msgs.push({ character: 'tock', message: 'Flawless quest run! +5 bonus for perfect with no hints!' })
+  const summaryLines = useMemo(() => {
+    const lines = [
+      `Results: ${result.session.correct}/${result.session.questions} correct (${accuracy}%).`,
+      `Clock Power gained: +${Math.round(result.points_earned)}.`,
+      `Current Clock Power: ${Math.round(result.new_clock_power)}.`,
+    ]
+
+    if (result.session.hints_used > 0) {
+      lines.push(`Hints used: ${result.session.hints_used}.`)
+    } else {
+      lines.push('No hints used.')
     }
-    msgs.push({
-      character: perfectNoHints ? 'tock' : 'tick',
-      message: `Quest summary: ${result.session.correct}/${result.session.questions} correct, +${Math.round(result.points_earned)} power.`,
-    })
-    return msgs
-  }, [result])
 
-  const [calloutIndex, setCalloutIndex] = useState(0)
+    if (perfectNoHints && result.session.mode === 'quest') {
+      lines.push('Perfect quest run with no hints — bonus achieved!')
+    }
+
+    return lines
+  }, [result, accuracy, perfectNoHints])
 
   return (
-    <div className="min-h-full p-6 pt-12 flex flex-col items-center">
-      {calloutIndex < callouts.length && (
-        <CharacterCalloutOverlay
-          character={callouts[calloutIndex].character}
-          message={callouts[calloutIndex].message}
-          onDismiss={() => setCalloutIndex(i => i + 1)}
-        />
-      )}
-      <h1 className="text-4xl font-black mb-6">
+    <div className="min-h-full p-6 pt-10 flex flex-col items-center">
+      <h1 className="text-4xl font-black mb-6 text-center">
         {accuracy >= 80 ? 'Great Job!' : accuracy >= 50 ? 'Good Effort!' : 'Keep Practising!'}
       </h1>
 
-      <Card className="w-full max-w-md mb-6">
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div>
-            <div className="text-3xl font-bold text-white">
-              {result.session.correct}/{result.session.questions}
-            </div>
-            <div className="text-sm text-slate-400">Correct</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-amber-400">{accuracy}%</div>
-            <div className="text-sm text-slate-400">Accuracy</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-green-400">+{Math.round(result.points_earned)}</div>
-            <div className="text-sm text-slate-400">Points Earned</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold font-mono text-amber-400">
-              {Math.round(result.new_clock_power)}
-            </div>
-            <div className="text-sm text-slate-400">Clock Power</div>
-          </div>
-        </div>
-      </Card>
+      <div className="w-full max-w-4xl flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 mb-6">
+        <img src={characterImage} alt={character} className="w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-2xl" />
 
-      {result.session.hints_used > 0 && (
-        <div className="text-slate-400 mb-2">
-          Hints used: {result.session.hints_used}
+        <div className="relative bg-white text-slate-800 rounded-2xl px-6 py-5 shadow-2xl w-full min-h-[220px] flex flex-col justify-between">
+          <div className="absolute -left-3 bottom-8 w-0 h-0 border-y-[12px] border-y-transparent border-r-[16px] border-r-white" />
+
+          <div>
+            <h2 className="text-2xl font-black mb-3">{character === 'tock' ? 'Legendary run!' : 'Quest summary'}</h2>
+            <div className="space-y-2 text-base md:text-lg font-semibold leading-snug">
+              {summaryLines.map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <TierBadge tier={result.new_tier} size="md" />
+            {result.tier_up && (
+              <div className="text-lg font-black text-green-600">Tier Up! 🚀</div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {result.session.speedrun_score !== null && (
         <div className="text-xl mb-4">
           Speed Score: <span className="text-amber-400 font-bold">{result.session.speedrun_score}</span>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <TierBadge tier={result.new_tier} size="lg" />
-      </div>
-
-      {result.tier_up && (
-        <div className="text-2xl font-bold text-green-400 mb-6 animate-bounce">
-          Tier Up!
         </div>
       )}
 
