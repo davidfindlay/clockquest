@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import tickTeach from '../../assets/characters/tick_teach.png'
 import tickIdle from '../../assets/characters/tick_idle.png'
 import tockCelebrate from '../../assets/characters/tock_celebrate.png'
@@ -16,15 +18,19 @@ const CHARACTER_IMG = {
 export function CharacterCalloutOverlay({ character, message, onDismiss }: CharacterCalloutOverlayProps) {
   const image = CHARACTER_IMG[character] ?? tickIdle
 
-  return (
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === 'Escape' || e.key === ' ') onDismiss()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onDismiss])
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/55 flex items-end md:items-center justify-center p-4"
-      onClick={onDismiss}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === 'Escape' || e.key === ' ') onDismiss()
-      }}
-      role="button"
-      tabIndex={0}
+      className="fixed inset-0 z-[9999] bg-black/55 flex items-end md:items-center justify-center p-4"
+      onPointerDown={onDismiss}
+      onTouchStart={onDismiss}
       aria-label="Dismiss tip"
     >
       <div className="w-full max-w-2xl flex flex-col md:flex-row items-center gap-4">
@@ -35,6 +41,7 @@ export function CharacterCalloutOverlay({ character, message, onDismiss }: Chara
           <div className="mt-2 text-[11px] font-medium text-slate-500">Tap anywhere to continue</div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
