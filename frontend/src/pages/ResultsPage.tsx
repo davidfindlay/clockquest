@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/UI/Button'
-import { TierBadge } from '../components/Progression/TierBadge'
 import { playSound } from '../utils/sounds'
+import { getTierByIndex } from '../utils/tier-config'
 import tickTeach from '../assets/characters/tick_teach.png'
 import tockCelebrate from '../assets/characters/tock_celebrate.png'
 import type { SessionResult } from '../types'
@@ -28,6 +28,8 @@ export function ResultsPage() {
   const perfectNoHints = result.session.correct === result.session.questions && result.session.hints_used === 0
   const character = perfectNoHints ? 'tock' : 'tick'
   const characterImage = character === 'tock' ? tockCelebrate : tickTeach
+  const tierName = getTierByIndex(result.new_tier).name
+  const pointsLostToHints = result.session.hints_used
 
   return (
     <div className="min-h-full p-6 pt-10 flex flex-col items-center">
@@ -61,16 +63,22 @@ export function ResultsPage() {
                 <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Clock Power</div>
                 <div className="text-xl font-black">{Math.round(result.new_clock_power)}</div>
               </div>
+              <div className="rounded-xl bg-slate-100 p-3">
+                <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Points Lost to Hints</div>
+                <div className="text-xl font-black text-rose-700">-{pointsLostToHints}</div>
+              </div>
+              <div className="rounded-xl bg-slate-100 p-3">
+                <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Tier</div>
+                <div className="text-xl font-black">{tierName}</div>
+              </div>
             </div>
 
-            <div className="mt-3 text-sm font-semibold text-slate-600">
-              {result.session.hints_used > 0 ? `Hints used: ${result.session.hints_used}` : 'No hints used'}
-              {perfectNoHints && result.session.mode === 'quest' ? ' · Perfect quest bonus achieved!' : ''}
-            </div>
+            {perfectNoHints && result.session.mode === 'quest' && (
+              <div className="mt-3 text-sm font-semibold text-green-700">Perfect quest bonus achieved!</div>
+            )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <TierBadge tier={result.new_tier} size="md" />
+          <div className="mt-4 flex items-center justify-end gap-3">
             {result.tier_up && (
               <div className="text-lg font-black text-green-600">Tier Up! 🚀</div>
             )}
